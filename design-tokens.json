@@ -1,0 +1,167 @@
+{
+  "$schema": "https://design-tokens.github.io/community-group/format/",
+  "meta": {
+    "name": "IELTS Cozy Design Tokens",
+    "version": "1.0.0",
+    "source": "IELTS Cozy mockup",
+    "format": "DTCG-aligned",
+    "description": "Canonical visual tokens for every IELTS Cozy surface."
+  },
+  "color": {
+    "core": {
+      "ink": { "$value": "#000000", "$type": "color" },
+      "white": { "$value": "#ffffff", "$type": "color" },
+      "slate": { "$value": "#475562", "$type": "color" },
+      "brand": { "$value": "#3860be", "$type": "color" },
+      "brandHover": { "$value": "#2c4d9c", "$type": "color" },
+      "line": { "$value": "#f0eee9", "$type": "color" },
+      "neutral": { "$value": "#cccccc", "$type": "color" },
+      "neutralStrong": { "$value": "#4e4e4e", "$type": "color" },
+      "selection": { "$value": "#dfe7f8", "$type": "color" },
+      "ice": { "$value": "#bcd4e6", "$type": "color" },
+      "lemon": { "$value": "#f5e9be", "$type": "color" },
+      "rose": { "$value": "#ebd3d6", "$type": "color" },
+      "peach": { "$value": "#efd3c7", "$type": "color" }
+    },
+    "background": {
+      "canvas": { "$value": "{color.core.white}", "$type": "color" },
+      "surface": { "$value": "{color.core.white}", "$type": "color" },
+      "subtle": { "$value": "{color.core.line}", "$type": "color" },
+      "inverse": { "$value": "{color.core.ink}", "$type": "color" },
+      "listening": { "$value": "{color.core.ice}", "$type": "color" },
+      "vocabulary": { "$value": "{color.core.lemon}", "$type": "color" },
+      "grammar": { "$value": "{color.core.peach}", "$type": "color" },
+      "review": { "$value": "{color.core.rose}", "$type": "color" }
+    },
+    "text": {
+      "primary": { "$value": "{color.core.ink}", "$type": "color" },
+      "secondary": { "$value": "{color.core.slate}", "$type": "color" },
+      "inverse": { "$value": "{color.core.white}", "$type": "color" },
+      "link": { "$value": "{color.core.brand}", "$type": "color" },
+      "linkHover": { "$value": "{color.core.ink}", "$type": "color" }
+    },
+    "border": {
+      "subtle": { "$value": "{color.core.line}", "$type": "color" },
+      "strong": { "$value": "{color.core.neutralStrong}", "$type": "color" },
+      "focus": { "$value": "{color.core.brand}", "$type": "color" }
+    },
+    "action": {
+      "primary": { "$value": "{color.core.brand}", "$type": "color" },
+      "primaryHover": { "$value": "{color.core.brandHover}", "$type": "color" },
+      "primaryText": { "$value": "{color.core.white}", "$type": "color" },
+      "secondary": { "$value": "{color.core.white}", "$type": "color" },
+      "secondaryText": { "$value": "{color.core.ink}", "$type": "color" },
+      "selected": { "$value": "{color.core.ink}", "$type": "color" }
+    },
+    "feedback": {
+      "successSurface": { "$value": "{color.core.ice}", "$type": "color" },
+      "warningSurface": { "$value": "{color.core.lemon}", "$type": "color" },
+      "errorSurface": { "$value": "{color.core.rose}", "$type": "color" },
+      "text": { "$value": "{color.core.ink}", "$type": "color" }
+    }
+  },
+  "font": {
+    "family": {
+      "sans": { "$value": "Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif", "$type": "fontFamily" },
+      "mono": { "$value": "'Roboto Mono', ui-monospace, SFMono-Regular, Menlo, monospace", "$type": "fontFamily" }
+    },
+    "weight": {
+      "regular": { "$value": 400, "$type": "fontWeight" },
+      "medium": { "$value": 500, "$type": "fontWeight" },
+      "semibold": { "$value": 600, "$type": "fontWeight" },
+      "bold": { "$value": 700, "$type": "fontWeight" }
+    },
+    "size": {
+      "display": { "$value": "32px", "$type": "fontSize" },
+      "title": { "$value": "24px", "$type": "fontSize" },
+      "subtitle": { "$value": "18px", "$type": "fontSize" },
+      "body": { "$value": "16px", "$type": "fontSize" },
+      "bodySmall": { "$value": "14px", "$type": "fontSize" },
+      "label": { "$value": "13px", "$type": "fontSize" },
+      "eyebrow": { "$value": "12px", "$type": "fontSize" },
+      "micro": { "$value": "11px", "$type": "fontSize" }
+    },
+    "lineHeight": {
+      "display": { "$value": "40px", "$type": "dimension" },
+      "title": { "$value": "32px", "$type": "dimension" },
+      "bodyLarge": { "$value": "27px", "$type": "dimension" },
+      "body": { "$value": "24px", "$type": "dimension" },
+      "bodySmall": { "$value": "21px", "$type": "dimension" }
+    },
+    "letterSpacing": {
+      "heading": { "$value": "0.64px", "$type": "dimension" },
+      "label": { "$value": "1px", "$type": "dimension" },
+      "eyebrow": { "$value": "1.5px", "$type": "dimension" }
+    }
+  },
+  "space": {
+    "1": { "$value": "4px", "$type": "dimension" },
+    "2": { "$value": "8px", "$type": "dimension" },
+    "3": { "$value": "12px", "$type": "dimension" },
+    "4": { "$value": "16px", "$type": "dimension" },
+    "5": { "$value": "20px", "$type": "dimension" },
+    "6": { "$value": "24px", "$type": "dimension" },
+    "8": { "$value": "32px", "$type": "dimension" },
+    "10": { "$value": "40px", "$type": "dimension" },
+    "12": { "$value": "48px", "$type": "dimension" },
+    "16": { "$value": "64px", "$type": "dimension" }
+  },
+  "radius": {
+    "subtle": { "$value": "2px", "$type": "dimension" },
+    "control": { "$value": "4px", "$type": "dimension" },
+    "compact": { "$value": "8px", "$type": "dimension" },
+    "card": { "$value": "16px", "$type": "dimension" },
+    "pill": { "$value": "24px", "$type": "dimension" },
+    "round": { "$value": "999px", "$type": "dimension" }
+  },
+  "border": {
+    "width": {
+      "default": { "$value": "1px", "$type": "dimension" },
+      "focus": { "$value": "2px", "$type": "dimension" }
+    }
+  },
+  "shadow": {
+    "card": { "$value": { "color": "rgba(225, 225, 225, 1)", "offsetX": "0px", "offsetY": "0px", "blur": "10px", "spread": "2px" }, "$type": "shadow" },
+    "control": { "$value": { "color": "rgba(0, 0, 0, 0.15)", "offsetX": "0px", "offsetY": "6px", "blur": "8px", "spread": "0px" }, "$type": "shadow" },
+    "inset": { "$value": { "color": "rgba(10, 10, 10, 0.1)", "offsetX": "0px", "offsetY": "1px", "blur": "2px", "spread": "0px", "inset": true }, "$type": "shadow" }
+  },
+  "layout": {
+    "contentMax": { "$value": "1200px", "$type": "dimension" },
+    "pageInlineDesktop": { "$value": "32px", "$type": "dimension" },
+    "pageInlineMobile": { "$value": "16px", "$type": "dimension" },
+    "pageBlock": { "$value": "64px", "$type": "dimension" },
+    "headerOffset": { "$value": "24px", "$type": "dimension" }
+  },
+  "motion": {
+    "fast": { "$value": "150ms", "$type": "duration" },
+    "default": { "$value": "200ms", "$type": "duration" },
+    "enter": { "$value": "300ms", "$type": "duration" },
+    "float": { "$value": "5000ms", "$type": "duration" },
+    "easing": {
+      "standard": { "$value": [0.2, 0, 0, 1], "$type": "cubicBezier" },
+      "emphasized": { "$value": [0.2, 0.8, 0.2, 1], "$type": "cubicBezier" }
+    }
+  },
+  "component": {
+    "button": {
+      "height": { "$value": "44px", "$type": "dimension" },
+      "radius": { "$value": "{radius.control}", "$type": "dimension" },
+      "paddingInline": { "$value": "{space.6}", "$type": "dimension" },
+      "labelSize": { "$value": "{font.size.eyebrow}", "$type": "fontSize" }
+    },
+    "card": {
+      "radius": { "$value": "{radius.card}", "$type": "dimension" },
+      "padding": { "$value": "{space.6}", "$type": "dimension" },
+      "borderColor": { "$value": "{color.border.subtle}", "$type": "color" }
+    },
+    "chip": {
+      "radius": { "$value": "{radius.round}", "$type": "dimension" },
+      "paddingInline": { "$value": "{space.4}", "$type": "dimension" },
+      "height": { "$value": "32px", "$type": "dimension" }
+    },
+    "progress": {
+      "height": { "$value": "6px", "$type": "dimension" },
+      "radius": { "$value": "{radius.round}", "$type": "dimension" }
+    }
+  }
+}
