@@ -24,15 +24,35 @@
   @keyframes cozyPulse{0%{box-shadow:0 0 0 0 rgba(56,96,190,.35)}70%{box-shadow:0 0 0 22px rgba(56,96,190,0)}100%{box-shadow:0 0 0 0 rgba(56,96,190,0)}}
   @keyframes cozyRise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
   @keyframes cozyFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+  @media (max-width:767px){
+    body{overflow-x:hidden}
+    .sticky-nav-shell{top:12px!important;padding:12px 12px 0!important}
+    .primary-nav{flex-wrap:nowrap!important;justify-content:flex-start!important;overflow-x:auto!important;padding:6px!important}
+    .primary-nav button{flex:0 0 auto;min-height:40px}
+    .app-topbar{padding:20px 16px 0!important;align-items:flex-start!important}
+    .app-meta{width:100%;overflow-x:auto;padding-bottom:2px}
+    .screen-subtitle{white-space:normal!important;overflow:visible!important;text-overflow:clip!important}
+    .page-content{padding:20px 16px 48px!important}
+    .page-content [style*="grid-template-columns:1fr 1.1fr"],.page-content [style*="grid-template-columns:1.4fr 1fr"],.page-content [style*="grid-template-columns:1.1fr .9fr"],.page-content [style*="grid-template-columns:1fr 340px"],.page-content [style*="grid-template-columns:1fr 320px"],.page-content [style*="grid-template-columns:1.3fr 1fr"],.page-content [style*="grid-template-columns:1fr 1fr"]{grid-template-columns:minmax(0,1fr)!important}
+    .page-content [style*="grid-template-columns:repeat(4,1fr)"]{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+    .page-content [style*="grid-template-columns:repeat(3,1fr)"]{grid-template-columns:minmax(0,1fr)!important}
+    .page-content [style*="grid-template-columns:120px 1fr 80px 80px"],.page-content [style*="grid-template-columns:96px 1fr auto"]{grid-template-columns:minmax(0,1fr) auto!important}
+    .home-hero{min-height:0!important;gap:24px!important}
+    .home-skill-grid>div{min-height:340px!important}
+    .page-content [style*="padding:32px"]{padding:20px!important}
+    .page-content [style*="padding:40px"]{padding:24px!important}
+    .page-content [style*="position:sticky"]{position:static!important;top:auto!important}
+    .page-content input[style*="width:150px"]{width:100%!important}
+  }
 </style>
 </helmet>
 <div style="min-height:100vh;background:#ffffff;display:flex;flex-direction:column">
 
 
-  <div style="position:sticky;top:24px;z-index:20;display:flex;justify-content:center;padding:24px 24px 0">
+  <div class="sticky-nav-shell" style="position:sticky;top:24px;z-index:20;display:flex;justify-content:center;padding:24px 24px 0">
     <div style="position:relative;border-radius:50px;padding:1.5px;overflow:hidden;clip-path:inset(0 round 50px);isolation:isolate;box-shadow:rgb(225,225,225) 0px 0px 10px 2px;max-width:100%">
       <div style="position:absolute;top:50%;left:50%;width:150%;padding-bottom:150%;transform:translate(-50%,-50%);background:conic-gradient(from 0deg,rgba(255,255,255,0) 0deg,rgba(255,255,255,0) 296deg,#bcd4e6 330deg,#3860be 350deg,rgba(255,255,255,0) 360deg);animation:beamSpin 5s linear infinite"></div>
-      <nav style="position:relative;display:flex;align-items:center;gap:0;background:rgba(255,255,255,.94);backdrop-filter:blur(14px);border-radius:50px;padding:8px;max-width:100%;flex-wrap:wrap;justify-content:center;row-gap:2px">
+      <nav class="primary-nav" style="position:relative;display:flex;align-items:center;gap:0;background:rgba(255,255,255,.94);backdrop-filter:blur(14px);border-radius:50px;padding:8px;max-width:100%;flex-wrap:wrap;justify-content:center;row-gap:2px">
       <sc-for list="{{ navItems }}" as="item" hint-placeholder-count="11">
         <button onClick="{{ item.go }}" style="{{ item.style }}" style-hover="color:#000000">{{ item.label }}</button>
       </sc-for>
@@ -40,16 +60,16 @@
     </div>
   </div>
   <main style="flex:1;min-width:0;display:flex;flex-direction:column;align-items:center">
-    <div style="width:100%;max-width:1200px;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:24px 32px 0;align-items:flex-end;flex-wrap:wrap;min-height:0">
+    <div class="app-topbar" style="width:100%;max-width:1200px;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:24px 32px 0;align-items:flex-end;flex-wrap:wrap;min-height:0">
       <div style="flex:1;min-width:0">
         <sc-if value="{{ notHome }}" hint-placeholder-val="{{ false }}">
           <div style="display:flex;flex-direction:column;gap:4px">
           <span style="font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:#475562;font-family:'Roboto Mono',ui-monospace,Menlo,monospace">{{ screenTitle }}</span>
-          <span style="font-size:24px;line-height:32px;font-weight:500;letter-spacing:.64px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ screenSub }}</span>
+          <span class="screen-subtitle" style="font-size:24px;line-height:32px;font-weight:500;letter-spacing:.64px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ screenSub }}</span>
           </div>
         </sc-if>
       </div>
-      <div style="display:flex;align-items:center;gap:8px">
+      <div class="app-meta" style="display:flex;align-items:center;gap:8px">
         <span style="display:flex;align-items:center;gap:6px;border:1px solid #f0eee9;border-radius:50px;white-space:nowrap;padding:8px 16px;font-size:12px;letter-spacing:1.5px;text-transform:uppercase;font-weight:700;white-space:nowrap">🔥 {{ streak }} ngày</span>
         <span style="display:flex;align-items:center;gap:8px;border:1px solid #f0eee9;border-radius:50px;white-space:nowrap;padding:8px 16px;font-size:12px;letter-spacing:1.5px;text-transform:uppercase;white-space:nowrap">target 7.0</span>
         <span style="display:flex;align-items:center;gap:8px;border:1px solid #f0eee9;border-radius:50px;white-space:nowrap;padding:8px 16px;font-size:12px;white-space:nowrap"><span style="width:72px;height:6px;border-radius:50px;background:#f0eee9;overflow:hidden;display:block"><span style="{{ xpBar }};display:block"></span></span><span style="letter-spacing:1.5px;text-transform:uppercase;font-weight:700">lv 12</span></span>
@@ -57,11 +77,11 @@
       </div>
     </div>
 
-    <div style="flex:1;padding:24px 32px 64px;max-width:1200px;width:100%;animation:cozyRise .3s ease both">
+    <div class="page-content" style="flex:1;padding:24px 32px 64px;max-width:1200px;width:100%;animation:cozyRise .3s ease both">
 
       <sc-if value="{{ isHome }}" hint-placeholder-val="{{ true }}">
       <div style="display:flex;flex-direction:column;gap:32px">
-        <section style="display:grid;grid-template-columns:1fr 1.1fr;gap:32px;align-items:center;min-height:460px">
+        <section class="home-hero" style="display:grid;grid-template-columns:1fr 1.1fr;gap:32px;align-items:center;min-height:460px">
           <div style="display:flex;flex-direction:column;gap:24px">
             <span style="font-family:'Roboto Mono',ui-monospace,Menlo,monospace;font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:#475562">ielts cozy · 2026</span>
             <h1 style="margin:0;font-size:32px;line-height:40px;font-weight:500;letter-spacing:.64px;text-wrap:balance">Luyện IELTS 20 phút mỗi ngày.</h1>
@@ -81,11 +101,11 @@
           </div>
         </section>
 
-        <section style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;align-items:stretch">
+        <section class="home-skill-grid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;align-items:stretch">
           <sc-for list="{{ skills }}" as="s" hint-placeholder-count="4">
             <div style="{{ s.style }}">
               <img src="{{ s.image }}" srcset="{{ s.srcSet }}" sizes="(max-width: 767px) calc(100vw - 32px), (max-width: 1023px) calc(50vw - 24px), 300px" loading="lazy" decoding="async" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block"/>
-              <div style="position:absolute;left:12px;right:12px;bottom:12px;background:rgba(255,255,255,.55);backdrop-filter:blur(14px) saturate(1.6);-webkit-backdrop-filter:blur(14px) saturate(1.6);border:1px solid rgba(255,255,255,.65);border-radius:8px;padding:20px;display:flex;flex-direction:column;gap:14px">
+              <div style="position:absolute;left:12px;right:12px;bottom:12px;background:rgba(255,255,255,.55);backdrop-filter:blur(6px) saturate(1.25);-webkit-backdrop-filter:blur(6px) saturate(1.25);border:1px solid rgba(255,255,255,.65);border-radius:8px;padding:20px;display:flex;flex-direction:column;gap:14px">
                 <div style="display:flex;align-items:center;justify-content:space-between;gap:12px">
                   <span style="font-size:16px;font-weight:700;letter-spacing:1px;text-transform:uppercase;white-space:nowrap">{{ s.name }}</span>
                   <button onClick="{{ s.go }}" style="width:36px;height:36px;flex:0 0 36px;border-radius:50px;border:1px solid #000000;background:transparent;color:#000000;cursor:pointer;font-size:12px;line-height:1;transition:background .2s ease,color .2s ease" style-hover="background:#000000;color:#ffffff">↑</button>

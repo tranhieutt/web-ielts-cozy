@@ -23,6 +23,9 @@ for (const fragment of ['<x-dc>', 'data-dc-script', 'assets/dc-runtime.js', 'her
 for (const screen of ['dashboard', 'reading', 'listening', 'writing', 'speaking', 'mock', 'vocab', 'library', 'progress', 'profile']) {
   if (!html.includes(`'${screen}'`)) throw new Error(`index.html missing ${screen} mockup screen`);
 }
+for (const fragment of ['@media (max-width:767px)', 'primary-nav', 'page-content', 'home-skill-grid', 'position:static!important']) {
+  if (!html.includes(fragment)) throw new Error(`index.html missing mobile responsive contract: ${fragment}`);
+}
 if (html.includes('uploads/') || html.includes('Pantone') || html.includes('.png')) throw new Error('index.html must use optimized runtime assets and canonical design names');
 if (!dcRuntime.includes('loadReactUmd')) throw new Error('DC runtime is incomplete');
 console.log('Full mockup IELTS runtime verified.');
