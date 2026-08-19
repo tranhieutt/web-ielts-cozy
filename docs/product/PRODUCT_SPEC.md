@@ -2,7 +2,7 @@
 
 **Phiên bản:** 1.0  
 **Trạng thái:** Bản nháp chờ duyệt  
-**Tài liệu nguồn sản phẩm:** `references/mockup/ielts-cozy.mockup.html`  
+**Nguồn giao diện và tương tác hiện tại:** `index.html`  
 **Thị trường chính:** Người học IELTS tại Việt Nam  
 **Nền tảng chính:** Web responsive, ưu tiên thiết bị di động
 
@@ -247,7 +247,7 @@ Thuộc tính sự kiện: mã người học đã ẩn danh, mã nội dung, k�
 
 ## 12. Khoảng cách từ prototype tới production
 
-PRD này dùng `references/mockup/ielts-cozy.mockup.html` làm tài liệu tham chiếu thiết kế và tương tác, không coi đó là triển khai production. Các hành vi prototype cần hệ thống thật:
+PRD này dùng `index.html` làm nguồn giao diện và tương tác ưu tiên. Các hành vi prototype cần hệ thống thật:
 
 - Điểm Reading và Listening mẫu hiện được mô phỏng/theo luật đơn giản; production cần answer key, engine chấm điểm và giải thích do hệ thống nội dung quản lý.
 - Feedback Writing hiện suy ra band từ số từ và tiêu chí cố định; production cần dịch vụ feedback có đánh giá, trạng thái xử lý và nhận xét có bằng chứng.

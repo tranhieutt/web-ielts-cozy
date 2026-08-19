@@ -12,7 +12,7 @@ B2C web app for self-paced IELTS learning. MVP covers Vocabulary, Grammar, and L
 - [Project structure](docs/architecture/PROJECT_STRUCTURE.md)
 - [Design System](DESIGN.md)
 - [Design tokens](design-tokens.json)
-- [Mockup reference](references/mockup/README.md)
+- [Current visual and interaction source](index.html)
 - [Changelog](CHANGELOG.md)
 
 ## Agent workflow

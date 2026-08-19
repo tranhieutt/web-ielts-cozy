@@ -13,7 +13,6 @@ supabase/                 Migrations, seed data, server functions
 content/                  Source-controlled learning content metadata
 design-tokens.json        Canonical machine-readable Design Tokens
 DESIGN.md                 Canonical Design System rules
-references/               Immutable mockup and source assets; never runtime code
 docs/                     Product, architecture, ADRs, contracts, runbooks
 .agents/                  Shared agent context, workflows, templates, checks
 ```

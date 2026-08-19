@@ -3,7 +3,7 @@
   "meta": {
     "name": "IELTS Cozy Design Tokens",
     "version": "1.0.0",
-    "source": "IELTS Cozy mockup",
+    "source": "IELTS Cozy root runtime (index.html)",
     "format": "DTCG-aligned",
     "description": "Canonical visual tokens for every IELTS Cozy surface."
   },

@@ -12,7 +12,7 @@ Architecture       docs/architecture/ARCHITECTURE.md
 Design rules       DESIGN.md
 Design values      design-tokens.json
 Agent protocol     AGENTS.md
-Mockup reference   references/mockup/ielts-cozy.mockup.html
+Runtime source     index.html
 ```
 
 ## Repository map
@@ -34,7 +34,7 @@ Mockup reference   references/mockup/ielts-cozy.mockup.html
 | `supabase/migrations/` | Planned | Versioned database schema only |
 | `supabase/seed/` | Planned | Local/staging demo data |
 | `content/` | Planned | Validated Vocabulary, Grammar, Listening metadata |
-| `references/mockup/` | Reference | Original visual/interaction prototype; never runtime import |
+| `assets/images/` | Active | Visual assets served by root runtime |
 | `.agents/` | Active | Cross-agent context, workflows, handoff templates, quality checks |
 | `.claude/skills/ielts-cozy-design/` | Active | Claude UI design skill |
 | `docs/` | Active | Product, architecture, ADR, contracts, design, runbooks |
@@ -89,7 +89,7 @@ Published content is immutable. Attempts point to the content version used durin
 | Work | Start here |
 |---|---|
 | Product behavior | `docs/product/PRODUCT_SPEC.md` |
-| UI/design | `DESIGN.md`, `design-tokens.json`, Claude design skill |
+| UI/design | `index.html`, `DESIGN.md`, `design-tokens.json`, Claude design skill |
 | Architecture/data | `docs/architecture/ARCHITECTURE.md`, ADRs |
 | Task planning/review | `.agents/workflows/plan-to-task.md`, `.agents/workflows/review-fix.md` |
 | Implementation | `.agents/workflows/implementation.md` |
@@ -103,4 +103,4 @@ Claude scopes and reviews tasks. Codex and Antigravity implement dynamically ass
 - Contract change: update consumer tests and document externally visible impact.
 - Token change: update `design-tokens.json`, `DESIGN.md`, and handoff.
 - Architecture change: create ADR before or with change.
-- Mockup change: keep it in `references/mockup/`; never treat it as production code.
+- Screen change: update `index.html` first, then align `DESIGN.md`, tokens, and product docs when needed.

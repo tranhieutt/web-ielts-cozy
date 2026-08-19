@@ -5,7 +5,7 @@
 | [`../../design-tokens.json`](../../design-tokens.json) | Canonical machine-readable token values |
 | [`../../DESIGN.md`](../../DESIGN.md) | Canonical human rules and component patterns |
 | [`../../.claude/skills/ielts-cozy-design/SKILL.md`](../../.claude/skills/ielts-cozy-design/SKILL.md) | Claude skill execution guide |
-| [`../../references/mockup/ielts-cozy.mockup.html`](../../references/mockup/ielts-cozy.mockup.html) | Visual reference mockup, not implementation source |
+| [`../../index.html`](../../index.html) | Canonical current visual layout and interaction behavior |
 
 ## Change control
 

@@ -2,7 +2,7 @@
 
 **Canonical design rules:** this document.  
 **Canonical values:** [`design-tokens.json`](design-tokens.json).  
-**Visual reference:** [`references/mockup/ielts-cozy.mockup.html`](references/mockup/ielts-cozy.mockup.html).
+**Current visual and interaction source of truth:** [`index.html`](index.html).
 
 ## 1. Design intent
 

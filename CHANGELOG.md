@@ -15,10 +15,11 @@ Mọi thay đổi đáng chú ý của IELTS Cozy được ghi trong file này.
 - Product Overview, PRD tiếng Việt, architecture docs, ADR-001, decision log, runbook, Code Map.
 - Agentic workflow cho Claude, Codex, Antigravity: shared contract, context, task/handoff templates, review and release checks.
 - Canonical Design System và DTCG-aligned Design Tokens dựa trên mockup.
-- Mockup/reference assets tách riêng tại `references/mockup/`.
+- Root `index.html` là nguồn giao diện và tương tác duy nhất; runtime assets tách tại `assets/`.
 
 ### Changed
 
+- Optimized runtime imagery: responsive WebP hero and lazy-loaded card `srcset` variants replace PNG assets.
 - Root runtime now renders full 11-screen Design Code mockup; runtime assets are served from `assets/`.
 - Reorganized repository into `apps/`, `packages/`, `content/`, `supabase/`, `docs/`, `references/`, `tests/`, `scripts/`, and agent configuration directories.
 - Chuyển tài liệu product vào `docs/product/`.
