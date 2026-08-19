@@ -16,6 +16,11 @@ coverage/
 .supabase/
 playwright-report/
 test-results/
+.translation-work/
+content/vocabulary/ielts_vocab_by_topic/.backups/
+content/vocabulary/ielts_vocab_by_topic/*.translation-tmp
+content/vocabulary/ielts_vocab_by_topic/*.csv
+content/vocabulary/ielts_vocab_by_topic/index.json
 
 # OS and editor files
 .DS_Store

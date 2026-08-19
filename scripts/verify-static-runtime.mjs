@@ -2,6 +2,7 @@ import { access, readFile } from 'node:fs/promises';
 
 const files = [
   'index.html',
+  'vercel.json',
   'assets/dc-runtime.js',
   'assets/images/hero-768.webp',
   'assets/images/hero-1280.webp',
@@ -16,7 +17,7 @@ const files = [
 ];
 for (const file of files) await access(new URL(`../${file}`, import.meta.url));
 
-const [html, dcRuntime] = await Promise.all(['index.html', 'assets/dc-runtime.js'].map(file => readFile(new URL(`../${file}`, import.meta.url), 'utf8')));
+const [html, vercelConfig, dcRuntime] = await Promise.all(['index.html', 'vercel.json', 'assets/dc-runtime.js'].map(file => readFile(new URL(`../${file}`, import.meta.url), 'utf8')));
 for (const fragment of ['<x-dc>', 'data-dc-script', 'assets/dc-runtime.js', 'hero-1280.webp', 'loading="lazy"', 'srcset="{{ s.srcSet }}"']) {
   if (!html.includes(fragment)) throw new Error(`index.html missing ${fragment}`);
 }
@@ -26,6 +27,11 @@ for (const screen of ['dashboard', 'reading', 'listening', 'writing', 'speaking'
 for (const fragment of ['@media (max-width:767px)', 'primary-nav', 'page-content', 'home-skill-grid', 'position:static!important']) {
   if (!html.includes(fragment)) throw new Error(`index.html missing mobile responsive contract: ${fragment}`);
 }
+for (const route of ['/dashboard', '/reading', '/listening', '/writing', '/speaking', '/mock', '/vocabulary', '/library', '/progress', '/profile']) {
+  if (!html.includes(`'${route}'`)) throw new Error(`index.html missing route: ${route}`);
+}
+const rewrites = JSON.parse(vercelConfig).rewrites ?? [];
+if (!rewrites.some(rewrite => rewrite.destination === '/index.html')) throw new Error('vercel.json missing SPA rewrite to index.html');
 if (html.includes('uploads/') || html.includes('Pantone') || html.includes('.png')) throw new Error('index.html must use optimized runtime assets and canonical design names');
 if (!dcRuntime.includes('loadReactUmd')) throw new Error('DC runtime is incomplete');
 console.log('Full mockup IELTS runtime verified.');

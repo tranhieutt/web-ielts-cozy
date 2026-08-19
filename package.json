@@ -8,6 +8,7 @@
   },
   "scripts": {
     "build": "node scripts/verify-static-runtime.mjs",
-    "vercel-build": "npm run build"
+    "vercel-build": "npm run build",
+    "vocab:translate-definitions": "node scripts/vocabulary/translate-definitions.mjs"
   }
 }

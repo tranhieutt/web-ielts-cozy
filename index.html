@@ -54,7 +54,7 @@
       <div style="position:absolute;top:50%;left:50%;width:150%;padding-bottom:150%;transform:translate(-50%,-50%);background:conic-gradient(from 0deg,rgba(255,255,255,0) 0deg,rgba(255,255,255,0) 296deg,#bcd4e6 330deg,#3860be 350deg,rgba(255,255,255,0) 360deg);animation:beamSpin 5s linear infinite"></div>
       <nav class="primary-nav" style="position:relative;display:flex;align-items:center;gap:0;background:rgba(255,255,255,.94);backdrop-filter:blur(14px);border-radius:50px;padding:8px;max-width:100%;flex-wrap:wrap;justify-content:center;row-gap:2px">
       <sc-for list="{{ navItems }}" as="item" hint-placeholder-count="11">
-        <button onClick="{{ item.go }}" style="{{ item.style }}" style-hover="color:#000000">{{ item.label }}</button>
+        <a href="{{ item.href }}" onClick="{{ item.go }}" style="{{ item.style }}" style-hover="color:#000000">{{ item.label }}</a>
       </sc-for>
       </nav>
     </div>
@@ -568,6 +568,15 @@ const NAV = [
   ['mock','Mock','07'],['vocab','Từ vựng','08'],['library','Kho đề','09'],
   ['progress','Tiến độ','10'],['profile','Hồ sơ','11']
 ];
+const ROUTES = {
+  home:'/', dashboard:'/dashboard', reading:'/reading', listening:'/listening', writing:'/writing', speaking:'/speaking',
+  mock:'/mock', vocab:'/vocabulary', library:'/library', progress:'/progress', profile:'/profile'
+};
+const screenFromPath = () => {
+  const path = window.location.pathname.replace(/\/+$/, '') || '/';
+  return Object.entries(ROUTES).find(([, route]) => route === path)?.[0] || 'home';
+};
+const pathFor = (screen) => ROUTES[screen] || ROUTES.home;
 const TITLES = {
   home:['ielts cozy','Luyện thi IELTS không áp lực'],
   dashboard:['Dashboard','Hôm nay của bạn'],
@@ -603,11 +612,13 @@ const bar = (pct,color) => 'width:' + pct + '%;height:100%;border-radius:50px;ba
 
 class Component extends DCLogic {
   state = {
-    screen:'home', rAns:{}, rDone:false, playing:false, t:0, speed:1,
+    screen:screenFromPath(), rAns:{}, rDone:false, playing:false, t:0, speed:1,
     blanks:{}, lStatus:'Điền hết rồi bấm kiểm tra nha.', task:2, text:'', graded:false,
     rec:false, recT:0, flip:false, fi:0, filter:'Tất cả', toggles:{0:true,1:true,2:false,3:true,4:false}
   };
   componentDidMount(){
+    this.onPopState = () => this.setState({screen:screenFromPath()});
+    window.addEventListener('popstate', this.onPopState);
     this.timer = setInterval(()=>{
       this.setState(s=>{
         const n={};
@@ -617,8 +628,8 @@ class Component extends DCLogic {
       });
     },1000);
   }
-  componentWillUnmount(){ clearInterval(this.timer); }
-  go(screen){ return ()=>this.setState({screen}); }
+  componentWillUnmount(){ clearInterval(this.timer); window.removeEventListener('popstate', this.onPopState); }
+  go(screen){ return (event)=>{ event?.preventDefault(); const path = pathFor(screen); if(window.location.pathname !== path) window.history.pushState({},'',path); this.setState({screen}); }; }
   mmss(x){ return String(Math.floor(x/60)).padStart(2,'0')+':'+String(x%60).padStart(2,'0'); }
 
   renderVals(){
@@ -651,7 +662,7 @@ class Component extends DCLogic {
     const tests = ALL.filter(x=>s.filter==='Tất cả'||x.skill===s.filter);
 
     return {
-      navItems: NAV.map(([k,label,tag])=>({key:k,label,tag,go:this.go(k),style:pill(s.screen===k)})),
+      navItems: NAV.map(([k,label,tag])=>({key:k,label,tag,href:pathFor(k),go:this.go(k),style:pill(s.screen===k)})),
       screenTitle:t[0], screenSub:t[1], notHome:s.screen!=='home', streak:18, xpBar:bar(64),
       isHome:s.screen==='home', isDashboard:s.screen==='dashboard', isReading:s.screen==='reading',
       isListening:s.screen==='listening', isWriting:s.screen==='writing', isSpeaking:s.screen==='speaking',

@@ -6,6 +6,7 @@ B2C web app for self-paced IELTS learning. MVP covers Vocabulary, Grammar, and L
 
 - [Product overview](docs/product/PRODUCT_OVERVIEW.md)
 - [PRD](docs/product/PRODUCT_SPEC.md)
+- [Vocabulary feature spec](docs/product/VOCABULARY_SPEC.md)
 - [Architecture](docs/architecture/ARCHITECTURE.md)
 - [Code map](docs/architecture/CODEMAP.md)
 - [Decision log](docs/architecture/DECISION_LOG.md)

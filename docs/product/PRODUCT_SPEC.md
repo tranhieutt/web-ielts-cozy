@@ -168,6 +168,8 @@ Prototype có mười một điểm đến chính. Điều hướng production p
 
 ### 6.9 Ôn từ vựng
 
+Chi tiết hành vi, data contract, lịch ôn và release gate: [Vocabulary feature spec](VOCABULARY_SPEC.md).
+
 - Hiển thị bộ từ theo chủ đề như Environment, Education và Technology; nguồn dữ liệu quyết định số bộ thực tế.
 - Flashcard lật giữa từ và nghĩa tiếng Việt/ví dụ.
 - Người học chọn **Chưa thuộc / Again** hoặc **Thuộc rồi / Got it**.
