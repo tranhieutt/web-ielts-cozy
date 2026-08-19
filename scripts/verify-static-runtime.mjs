@@ -2,8 +2,7 @@ import { access, readFile } from 'node:fs/promises';
 
 const files = [
   'index.html',
-  'styles.css',
-  'app.js',
+  'assets/dc-runtime.js',
   'assets/images/top_home_page.png',
   'assets/images/reading_home_page.png',
   'assets/images/writing_home_page.png',
@@ -12,15 +11,13 @@ const files = [
 ];
 for (const file of files) await access(new URL(`../${file}`, import.meta.url));
 
-const [html, css, js] = await Promise.all(['index.html', 'styles.css', 'app.js'].map(file => readFile(new URL(`../${file}`, import.meta.url), 'utf8')));
-for (const fragment of ['id="app"', 'styles.css', 'app.js']) {
+const [html, dcRuntime] = await Promise.all(['index.html', 'assets/dc-runtime.js'].map(file => readFile(new URL(`../${file}`, import.meta.url), 'utf8')));
+for (const fragment of ['<x-dc>', 'data-dc-script', 'assets/dc-runtime.js', 'assets/images/']) {
   if (!html.includes(fragment)) throw new Error(`index.html missing ${fragment}`);
 }
-for (const token of ['--color-brand', '--color-vocabulary', '--radius-card']) {
-  if (!css.includes(token)) throw new Error(`styles.css missing token ${token}`);
+for (const screen of ['dashboard', 'reading', 'listening', 'writing', 'speaking', 'mock', 'vocab', 'library', 'progress', 'profile']) {
+  if (!html.includes(`'${screen}'`)) throw new Error(`index.html missing ${screen} mockup screen`);
 }
-for (const route of ['vocabulary', 'grammar', 'listening', 'progress']) {
-  if (!js.includes(`render${route[0].toUpperCase()}${route.slice(1)}`)) throw new Error(`app.js missing ${route} runtime`);
-}
-if (js.includes('references/mockup/')) throw new Error('Runtime must not import mockup reference assets');
-console.log('Static IELTS runtime verified.');
+if (html.includes('uploads/') || html.includes('Pantone')) throw new Error('index.html must use runtime assets and canonical design names');
+if (!dcRuntime.includes('loadReactUmd')) throw new Error('DC runtime is incomplete');
+console.log('Full mockup IELTS runtime verified.');

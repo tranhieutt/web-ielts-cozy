@@ -19,6 +19,7 @@ Mọi thay đổi đáng chú ý của IELTS Cozy được ghi trong file này.
 
 ### Changed
 
+- Root runtime now renders full 11-screen Design Code mockup; runtime assets are served from `assets/`.
 - Reorganized repository into `apps/`, `packages/`, `content/`, `supabase/`, `docs/`, `references/`, `tests/`, `scripts/`, and agent configuration directories.
 - Chuyển tài liệu product vào `docs/product/`.
 - Chuyển Claude Design Skill vào `.claude/skills/ielts-cozy-design/`.

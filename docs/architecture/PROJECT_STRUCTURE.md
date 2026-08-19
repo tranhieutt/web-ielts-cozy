@@ -1,9 +1,8 @@
 # Project Structure
 
 ```text
-index.html                Static IELTS runtime entry, deployed by Vercel
-styles.css                Static runtime styles from canonical token values
-app.js                    Browser-only learning interactions and local progress
+index.html                Full interactive Design Code mockup runtime, deployed by Vercel
+assets/dc-runtime.js      Design Code runtime for mockup interactions
 assets/images/            Runtime copies of approved visual assets
 apps/web/                 Next.js application and BFF API
 packages/ui/              Shared design-system primitives
