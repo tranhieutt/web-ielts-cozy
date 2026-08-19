@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#3860be" />
+    <meta name="description" content="IELTS Cozy — luyện IELTS mỗi ngày với từ vựng, ngữ pháp và Listening." />
+    <title>IELTS Cozy — Luyện mỗi ngày</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#app">Bỏ qua điều hướng</a>
+    <header class="site-header">
+      <nav class="navigation" aria-label="Điều hướng chính">
+        <a class="brand" href="#home" data-route-link="home" aria-label="IELTS Cozy trang chủ">IELTS<br />COZY</a>
+        <div class="nav-links">
+          <button type="button" data-route="dashboard">Hôm nay</button>
+          <button type="button" data-route="vocabulary">Từ vựng</button>
+          <button type="button" data-route="grammar">Ngữ pháp</button>
+          <button type="button" data-route="listening">Listening</button>
+          <button type="button" data-route="progress">Tiến độ</button>
+        </div>
+        <button class="avatar" type="button" data-route="dashboard" aria-label="Mở dashboard của Khôi">MK</button>
+      </nav>
+    </header>
+
+    <main id="app" tabindex="-1"></main>
+
+    <noscript>
+      <p class="noscript">Bật JavaScript để dùng bài tập IELTS Cozy.</p>
+    </noscript>
+    <script type="module" src="app.js"></script>
+  </body>
+</html>

@@ -8,6 +8,8 @@ Mọi thay đổi đáng chú ý của IELTS Cozy được ghi trong file này.
 
 ### Added
 
+- Static IELTS runtime: Home, Dashboard, Vocabulary flashcards, Grammar feedback, Listening demo, and Progress screen.
+- Browser-local learning progress with dependency-free runtime verification for Vercel build.
 - Architecture scaffold cho B2C IELTS MVP: Vocabulary, Grammar, Listening.
 - Modular-monolith architecture: Next.js BFF, Supabase Auth/Postgres/Storage, anonymous learner session, immutable content version.
 - Product Overview, PRD tiếng Việt, architecture docs, ADR-001, decision log, runbook, Code Map.

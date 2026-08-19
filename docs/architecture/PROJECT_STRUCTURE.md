@@ -1,6 +1,10 @@
 # Project Structure
 
 ```text
+index.html                Static IELTS runtime entry, deployed by Vercel
+styles.css                Static runtime styles from canonical token values
+app.js                    Browser-only learning interactions and local progress
+assets/images/            Runtime copies of approved visual assets
 apps/web/                 Next.js application and BFF API
 packages/ui/              Shared design-system primitives
 packages/contracts/       Shared types and validation schemas

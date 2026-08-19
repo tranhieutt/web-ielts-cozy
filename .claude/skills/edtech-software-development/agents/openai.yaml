@@ -1,0 +1,4 @@
+interface:
+  display_name: "EdTech Delivery Workflow"
+  short_description: "Take an EdTech idea to a Git-ready product foundation"
+  default_prompt: "Use $edtech-software-development to plan an EdTech product from idea through Git setup."

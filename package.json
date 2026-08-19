@@ -1,0 +1,13 @@
+{
+  "name": "web-ielts-cozy",
+  "version": "0.1.0",
+  "private": true,
+  "description": "IELTS Cozy — B2C self-study product foundation.",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "scripts": {
+    "build": "node scripts/verify-static-runtime.mjs",
+    "vercel-build": "npm run build"
+  }
+}
