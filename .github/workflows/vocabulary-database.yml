@@ -1,0 +1,23 @@
+name: Vocabulary database tests
+
+on:
+  pull_request:
+    paths:
+      - 'supabase/**'
+      - '.github/workflows/vocabulary-database.yml'
+  workflow_dispatch:
+
+jobs:
+  vocabulary-database:
+    name: vocabulary-database
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: supabase/setup-cli@v1
+        with:
+          version: 2.115.0
+      - name: Start local Supabase database
+        run: supabase db start
+      - name: Run pgTAP database tests
+        run: supabase test db
