@@ -1,0 +1,107 @@
+/*
+ * Matches the prototype's sticky pill nav so moving between the real page and
+ * the remaining mockup screens does not look like two different products.
+ * Values mirror the export: 50px pill radius, 8px shell padding, uppercase
+ * labels with wide tracking, active item a solid black pill.
+ *
+ * The rotating conic-gradient beam around the prototype's shell is deliberately
+ * not reproduced: it is decoration that costs an always-running animation, and
+ * `prefers-reduced-motion` users would be excluded from it anyway.
+ */
+
+.shell {
+  position: sticky;
+  top: var(--space-6);
+  z-index: 20;
+  display: flex;
+  justify-content: center;
+  padding: var(--space-6) var(--space-6) 0;
+}
+
+.nav {
+  position: relative;
+  max-width: 100%;
+  border-radius: var(--radius-pill);
+  background: var(--color-background-surface);
+  box-shadow: 0 0 10px 2px rgb(0 0 0 / 12%);
+}
+
+/*
+ * Scrolls sideways rather than wrapping. Eleven items wrapped at 360px push the
+ * page heading well below the fold — the mistake the identity bar already made
+ * once — and a scrolling row stays one row tall at every width.
+ */
+.list {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  margin: 0;
+  padding: var(--space-2);
+  list-style: none;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.list::-webkit-scrollbar {
+  display: none;
+}
+
+.item {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  /* 44px minimum target (VOC-09); the prototype's own padding alone is short. */
+  min-height: 44px;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-pill);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-label);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--font-letter-spacing-label);
+  text-transform: uppercase;
+  text-decoration: none;
+  /* Must not shrink, or labels would compress instead of the row scrolling. */
+  white-space: nowrap;
+  transition: background var(--motion-default), color var(--motion-default);
+}
+
+.item:hover {
+  color: var(--color-text-primary);
+}
+
+.itemActive,
+.itemActive:hover {
+  background: var(--color-background-inverse);
+  color: var(--color-text-inverse);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .item {
+    transition: none;
+  }
+}
+
+/*
+ * Moved off-screen rather than hidden with `display:none`, which would take it
+ * out of the tab order entirely and defeat the point. Absolute, so it can never
+ * be the reason the nav grows a second row.
+ */
+.skip {
+  position: absolute;
+  top: 0;
+  left: -9999px;
+  z-index: 30;
+}
+
+.skip:focus {
+  left: var(--space-2);
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-control);
+  background: var(--color-background-inverse);
+  color: var(--color-text-inverse);
+  font-size: var(--font-size-body-small);
+  font-weight: var(--font-weight-bold);
+}
