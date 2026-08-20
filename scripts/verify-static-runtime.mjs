@@ -1,6 +1,7 @@
 import { access, readFile } from 'node:fs/promises';
 import nextConfig from '../apps/web/next.config.mjs';
 import { APP_ROUTES } from './app-routes.mjs';
+import { findRouteProblems } from './route-coverage.mjs';
 
 const files = [
   'index.html',
@@ -44,18 +45,42 @@ if (vercel.outputDirectory !== 'apps/web/.next') throw new Error('vercel.json mu
 const rewritten = new Set((await nextConfig.rewrites()).map(rewrite => rewrite.source));
 const prototypeRoutes = [...html.matchAll(/'(\/[a-z][a-z0-9/-]*)'/g)].map(match => match[1]);
 
-for (const route of new Set(['/', ...prototypeRoutes])) {
-  if (rewritten.has(route)) continue;
-  // Owned by the app: served by a real page, and the prototype's client-side
-  // router must hand the click over rather than rendering its own screen.
-  if (APP_ROUTES.some(base => route === base || route.startsWith(`${base}/`))) continue;
-  // Taken over by a real page, e.g. /vocabulary.
+async function pageExists(route) {
   try {
     await access(new URL(`../apps/web/src/app${route}/page.tsx`, import.meta.url));
+    return true;
   } catch {
-    throw new Error(`route ${route} is reachable in the prototype but nothing serves it`);
+    return false;
   }
 }
+
+// Resolve every candidate up front so the rules themselves stay synchronous
+// and testable.
+const candidates = [...new Set(['/', ...prototypeRoutes, ...APP_ROUTES])];
+const existing = new Set();
+for (const route of candidates) if (await pageExists(route)) existing.add(route);
+
+const problems = findRouteProblems({
+  reachable: ['/', ...prototypeRoutes],
+  rewritten,
+  appRoutes: APP_ROUTES,
+  pageExists: route => existing.has(route),
+});
+if (problems.length > 0) throw new Error(problems.join('; '));
+
+// The handoff only exists in the SYNCED copy, so a build that forgot to run the
+// sync would rewrite routes correctly and still leave every click trapped in
+// the prototype's own router.
+const synced = await readFile(new URL('../apps/web/public/prototype.html', import.meta.url), 'utf8')
+  .catch(() => null);
+if (synced !== null) {
+  for (const route of APP_ROUTES) {
+    if (!synced.includes(`"${route}"`)) {
+      throw new Error(`synced prototype does not hand ${route} over to the app`);
+    }
+  }
+}
+
 if (html.includes('uploads/') || html.includes('Pantone') || html.includes('.png')) throw new Error('index.html must use optimized runtime assets and canonical design names');
 if (!dcRuntime.includes('loadReactUmd')) throw new Error('DC runtime is incomplete');
 console.log(`Prototype runtime verified; ${rewritten.size} routes rewritten, real pages cover the rest.`);
