@@ -1,0 +1,24 @@
+# Normalise line endings across Windows (Claude/Codex) and Linux (CI) so a
+# checkout on one platform does not produce whole-file diffs on another.
+* text=auto eol=lf
+
+# Content and generated data files are read by scripts that assume LF.
+*.jsonl text eol=lf
+*.json  text eol=lf
+*.md    text eol=lf
+*.mjs   text eol=lf
+*.ts    text eol=lf
+*.tsx   text eol=lf
+*.css   text eol=lf
+*.sql   text eol=lf
+*.yml   text eol=lf
+
+# Binaries must never be line-ending converted.
+*.mp3  binary
+*.png  binary
+*.jpg  binary
+*.jpeg binary
+*.webp binary
+*.woff  binary
+*.woff2 binary
+*.ico   binary
