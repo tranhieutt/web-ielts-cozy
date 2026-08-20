@@ -54,6 +54,12 @@ export interface LearnerSession {
   refreshToken: string | null;
   /** True when cookies changed and must be written back onto the response. */
   rotated: boolean;
+  /**
+   * Whether a real account is linked. Drives the header affordance ADR-004
+   * promises: an anonymous learner is shown how to keep their progress, and one
+   * who already did is not nagged.
+   */
+  signedIn: boolean;
 }
 
 function cookieOptions(name: string, value: string) {
@@ -87,14 +93,20 @@ export async function resolveLearnerSession(request: NextRequest): Promise<Learn
   if (accessToken && refreshToken) {
     const claims = readClaims(accessToken);
     if (claims && !isExpired(claims.exp)) {
-      return { learnerId: claims.sub, accessToken, refreshToken, rotated: false };
+      return {
+        learnerId: claims.sub,
+        accessToken,
+        refreshToken,
+        rotated: false,
+        signedIn: !claims.isAnonymous,
+      };
     }
   }
 
   if (refreshToken) {
     try {
       const pair = await refreshSession(refreshToken);
-      return { ...pair, rotated: true };
+      return { ...pair, rotated: true, signedIn: !readClaims(pair.accessToken)?.isAnonymous };
     } catch (error) {
       // Rate limiting is a real, reportable condition; a dead refresh token is not.
       if (error instanceof AuthRateLimitError) throw error;
@@ -102,7 +114,7 @@ export async function resolveLearnerSession(request: NextRequest): Promise<Learn
   }
 
   const pair = await signInAnonymously();
-  return { ...pair, rotated: true };
+  return { ...pair, rotated: true, signedIn: false };
 }
 
 /** Dev/test identity. Unsigned, unauthenticated, and never in front of real data. */
@@ -113,6 +125,7 @@ function placeholderSession(request: NextRequest): LearnerSession {
     accessToken: null,
     refreshToken: null,
     rotated: existing === undefined,
+    signedIn: false,
   };
 }
 

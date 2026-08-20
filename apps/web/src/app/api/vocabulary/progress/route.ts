@@ -8,6 +8,8 @@ import { getLearnerProgress } from '@/features/vocabulary/service';
 
 export async function GET(request: NextRequest) {
   return withLearner(request, async (session) =>
-    NextResponse.json(await getLearnerProgress(session)),
+    // `signedIn` comes from the session, not the data layer: whether an account
+    // is linked is a property of the credential, not of the learner's progress.
+    NextResponse.json({ ...(await getLearnerProgress(session)), signedIn: session.signedIn }),
   );
 }

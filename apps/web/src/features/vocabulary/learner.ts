@@ -11,6 +11,7 @@
  */
 
 import * as supabase from './learner.supabase.ts';
+export { StaleStateError } from './learner.supabase.ts';
 import * as fixture from './repository.fixture.ts';
 import { STAGE_INTERVAL_MINUTES } from './srs/transition.mjs';
 import type { LearnerCardState, Rating, ReviewResult } from './types.ts';
@@ -44,6 +45,8 @@ export interface SubmitInput {
   rating: Rating;
   idempotencyKey: string;
   reviewedAt: Date;
+  /** The state the transition was computed from, for the RPC's staleness check. */
+  expected: { state: string; stage: number | null };
   next: { state: string; stage: number; dueAt: string; intervalMinutes: number };
 }
 
@@ -67,6 +70,8 @@ export async function submitReview(
       rating: input.rating,
       idempotencyKey: input.idempotencyKey,
       reviewedAt: input.reviewedAt.toISOString(),
+      expectedState: input.expected.state,
+      expectedStage: input.expected.stage,
       nextState: input.next.state,
       nextStage: input.next.stage,
       nextDueAt: input.next.dueAt,

@@ -9,6 +9,7 @@ import { NextResponse, type NextRequest } from 'next/server';
 
 import { buildGoogleLinkUrl } from '@/features/vocabulary/auth.supabase';
 import {
+  attachLearnerSession,
   attachPkceVerifier,
   createPkcePair,
   resolveLearnerSession,
@@ -29,5 +30,12 @@ export async function GET(request: NextRequest) {
   const callback = new URL('/api/vocabulary/auth/callback', request.nextUrl.origin);
   const googleUrl = await buildGoogleLinkUrl(session.accessToken, callback.toString(), challenge);
 
-  return attachPkceVerifier(NextResponse.redirect(googleUrl), verifier);
+  // The session must be written back here, not only in the callback. Resolving
+  // may have rotated the refresh token, and Supabase invalidates the old one
+  // moments later. If the learner then cancels on Google's screen, the browser
+  // would be holding credentials that no longer work, the next request would
+  // mint a fresh anonymous UUID, and their progress would be stranded — the
+  // exact failure this flow exists to prevent.
+  const response = attachPkceVerifier(NextResponse.redirect(googleUrl), verifier);
+  return attachLearnerSession(response, session);
 }

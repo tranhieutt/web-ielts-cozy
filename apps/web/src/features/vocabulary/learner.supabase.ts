@@ -26,6 +26,19 @@ function config() {
   return { url, key };
 }
 
+/**
+ * The state changed under the caller between reading it and writing.
+ *
+ * Not an error the learner can act on: the fix is to re-read, recompute the
+ * transition, and try again, which is what `learner.ts` does.
+ */
+export class StaleStateError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'StaleStateError';
+  }
+}
+
 /** Raised when the RPC rejects a card the learner cannot see. */
 export class UnknownCardError extends Error {
   constructor(cardId: string) {
@@ -56,6 +69,10 @@ async function rest<T>(
   if (!response.ok) {
     const body = await response.text();
     if (body.includes('unknown card')) throw new UnknownCardError(path);
+    // PT409 — the RPC refused to write over a state that had moved under us.
+    // Deliberately not SQLSTATE 40001: PostgREST retries serialization failures
+    // automatically, which turns one lost race into an unbounded retry loop.
+    if (response.status === 409) throw new StaleStateError(body);
     throw new Error(`Supabase learner call failed (${response.status}): ${body}`);
   }
   return (await response.json()) as T;
@@ -110,6 +127,9 @@ export interface SubmitArgs {
   rating: 'again' | 'known';
   idempotencyKey: string;
   reviewedAt: string;
+  /** What the caller computed its transition FROM. The RPC rejects a mismatch. */
+  expectedState: string;
+  expectedStage: number | null;
   nextState: string;
   nextStage: number;
   nextDueAt: string;
@@ -140,6 +160,8 @@ export async function submitReview(
       p_rating: args.rating,
       p_idempotency_key: args.idempotencyKey,
       p_reviewed_at: args.reviewedAt,
+      p_expected_state: args.expectedState,
+      p_expected_stage: args.expectedStage,
       p_next_state: args.nextState,
       p_next_stage: args.nextStage,
       p_next_due_at: args.nextDueAt,

@@ -56,6 +56,9 @@ async function signInAnonymously() {
 async function rest(token, path, init = {}) {
   const response = await fetch(`${URL_BASE}/rest/v1/${path}`, {
     ...init,
+    // A blocked write must surface as a failed test, not a suite that hangs
+    // until the gateway gives up 125 seconds later.
+    signal: AbortSignal.timeout(15_000),
     headers: {
       apikey: KEY,
       Authorization: `Bearer ${token}`,
@@ -66,7 +69,10 @@ async function rest(token, path, init = {}) {
   return { ok: response.ok, status: response.status, body: await response.json() };
 }
 
-function submit(token, { card = PUBLISHED_CARD, key, stage = 1, state = 'review' } = {}) {
+function submit(
+  token,
+  { card = PUBLISHED_CARD, key, stage = 1, state = 'review', from = { state: 'new', stage: null } } = {},
+) {
   return rest(token, 'rpc/submit_vocabulary_review', {
     method: 'POST',
     body: JSON.stringify({
@@ -74,6 +80,8 @@ function submit(token, { card = PUBLISHED_CARD, key, stage = 1, state = 'review'
       p_rating: 'known',
       p_idempotency_key: key,
       p_reviewed_at: new Date().toISOString(),
+      p_expected_state: from.state,
+      p_expected_stage: from.stage,
       p_next_state: state,
       p_next_stage: stage,
       p_next_due_at: new Date(Date.now() + 86_400_000).toISOString(),
@@ -82,14 +90,12 @@ function submit(token, { card = PUBLISHED_CARD, key, stage = 1, state = 'review'
 }
 
 describe('VOC-QA-02 review write against Supabase', { skip: !ENABLED && 'set VOCABULARY_INTEGRATION=1' }, () => {
-  let alice;
-  let bob;
-
-  before(async () => {
-    [alice, bob] = await Promise.all([signInAnonymously(), signInAnonymously()]);
-  });
+  // A fresh learner per test. Sharing one would make the order matter now that
+  // the RPC rejects a write computed from a stale state, and order-dependent
+  // integration tests hide the failures they are meant to expose.
 
   test('one call writes BOTH the event and the state', async () => {
+    const alice = await signInAnonymously();
     const key = crypto.randomUUID();
     const result = await submit(alice.token, { key });
 
@@ -107,6 +113,7 @@ describe('VOC-QA-02 review write against Supabase', { skip: !ENABLED && 'set VOC
   });
 
   test('replaying a key returns the original and never advances a stage', async () => {
+    const alice = await signInAnonymously();
     const key = crypto.randomUUID();
     const first = await submit(alice.token, { key, stage: 2 });
 
@@ -124,6 +131,7 @@ describe('VOC-QA-02 review write against Supabase', { skip: !ENABLED && 'set VOC
   });
 
   test('concurrent requests with one key produce exactly one event', async () => {
+    const alice = await signInAnonymously();
     const key = crypto.randomUUID();
 
     // This is the `unique_violation` branch in the RPC. Sequential replays never
@@ -147,7 +155,34 @@ describe('VOC-QA-02 review write against Supabase', { skip: !ENABLED && 'set VOC
     assert.equal(reviews.body.length, 1, 'the unique constraint must collapse the race');
   });
 
+  test('two different reviews of one card cannot both write the same stage', async () => {
+    const alice = await signInAnonymously();
+
+    // The idempotency key does not help here: these are two genuine reviews,
+    // not a retry of one. Before the staleness check both could compute stage 1
+    // from state 'new' and both write it, so the learner was charged two
+    // reviews and advanced one stage.
+    const [a, b] = await Promise.all([
+      submit(alice.token, { key: crypto.randomUUID(), stage: 1 }),
+      submit(alice.token, { key: crypto.randomUUID(), stage: 1 }),
+    ]);
+
+    const wrote = [a, b].filter((result) => result.ok);
+    const refused = [a, b].filter((result) => !result.ok);
+
+    assert.equal(wrote.length, 1, 'exactly one may write from state new');
+    assert.equal(refused.length, 1, 'the other must be refused, not silently applied');
+    assert.equal(refused[0].status, 409, 'a lost race must answer 409, not a retryable error');
+    assert.match(JSON.stringify(refused[0].body), /stale learner state/);
+
+    const states = await rest(alice.token, `learner_card_states?card_id=eq.${PUBLISHED_CARD}`);
+    assert.equal(states.body[0].review_count, 1, 'a refused review must not be counted');
+  });
+
   test('RLS keeps one learner out of another learner state', async () => {
+    const alice = await signInAnonymously();
+    const bob = await signInAnonymously();
+    await submit(alice.token, { key: crypto.randomUUID() });
     const seen = await rest(bob.token, 'learner_card_states?select=learner_id');
     assert.equal(seen.body.length, 0, "Bob must not see Alice's rows");
 
@@ -168,6 +203,7 @@ describe('VOC-QA-02 review write against Supabase', { skip: !ENABLED && 'set VOC
   });
 
   test('the RPC refuses an unpublished card rather than storing hidden progress', async () => {
+    const bob = await signInAnonymously();
     const result = await submit(bob.token, { card: UNPUBLISHED_CARD, key: crypto.randomUUID() });
 
     assert.equal(result.ok, false, 'an unpublished card must not become learner state');
@@ -181,8 +217,13 @@ describe('VOC-QA-02 review write against Supabase', { skip: !ENABLED && 'set VOC
   });
 
   test('state survives a brand new session for the same learner (VOC-07)', async () => {
-    const key = crypto.randomUUID();
-    await submit(alice.token, { key, stage: 4 });
+    const alice = await signInAnonymously();
+    await submit(alice.token, { key: crypto.randomUUID(), stage: 1 });
+    await submit(alice.token, {
+      key: crypto.randomUUID(),
+      stage: 2,
+      from: { state: 'review', stage: 1 },
+    });
 
     // A fresh token stands in for a reload or a restarted server: same learner,
     // no in-process memory involved.
@@ -196,6 +237,6 @@ describe('VOC-QA-02 review write against Supabase', { skip: !ENABLED && 'set VOC
     const states = await rest(token, `learner_card_states?card_id=eq.${PUBLISHED_CARD}`);
 
     assert.equal(states.body.length, 1);
-    assert.ok(states.body[0].review_count >= 2, 'every non-replayed review must count');
+    assert.equal(states.body[0].review_count, 2, 'every non-replayed review must count');
   });
 });

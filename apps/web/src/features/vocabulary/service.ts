@@ -36,9 +36,18 @@ function cefrRank(card: VocabularyCard): number {
   return index === -1 ? CEFR_ORDER.length : index;
 }
 
-export async function getDeckCatalog(ctx: LearnerContext): Promise<DeckSummary[]> {
+/**
+ * `states` is accepted so a caller that already holds them does not pay for a
+ * second fetch. Against Supabase that is a full network round trip (~600ms),
+ * and VOC-QA-06 established that the number of round trips is what costs, not
+ * the queries themselves.
+ */
+export async function getDeckCatalog(
+  ctx: LearnerContext,
+  preloadedStates?: LearnerCardState[],
+): Promise<DeckSummary[]> {
   const now = Date.now();
-  const states = await learner.getLearnerStates(ctx);
+  const states = preloadedStates ?? (await learner.getLearnerStates(ctx));
   const decks = (await content.listDeckSummaries()).filter(
     (deck) => deck.publishStatus === 'published',
   );
@@ -125,11 +134,20 @@ export async function buildReviewQueue(
     .map((entry) => toPayload(entry.card));
 }
 
+/** One retry is enough: a second conflict on the same card means real contention. */
+const STALE_STATE_RETRIES = 1;
+
 /**
  * Submit one rating. State update and review event are one unit of work; a
  * repeated `idempotencyKey` replays the FIRST result instead of advancing a
  * second stage (spec §8.4). Atomicity lives in the adapter, because only the
  * database can provide it.
+ *
+ * The transition is computed here and the state it was computed FROM is sent
+ * with it. If another review of the same card landed in between, the adapter
+ * refuses the write and this reads and recomputes — otherwise two reviews would
+ * both write the same stage, costing the learner one step of the schedule while
+ * counting two reviews.
  */
 export async function submitReview(
   ctx: LearnerContext,
@@ -144,19 +162,30 @@ export async function submitReview(
     throw new Error(`unknown card: ${cardId}`);
   }
 
-  // The previous state is read for the SRS transition only. The adapter reads
-  // it again inside the transaction, which is the read that actually decides
-  // what is written — this one cannot race anything.
-  const states = await learner.getLearnerStates(ctx);
-  const current = states.find((state) => state.cardId === cardId);
+  for (let attempt = 0; ; attempt += 1) {
+    const states = await learner.getLearnerStates(ctx);
+    const current = states.find((state) => state.cardId === cardId);
+    const expected = { state: current?.state ?? 'new', stage: current?.stage ?? null };
 
-  const next = transitionVocabularySrs(
-    { state: current?.state ?? 'new', stage: current?.stage ?? null },
-    rating,
-    reviewedAt,
-  );
+    const next = transitionVocabularySrs(
+      { state: expected.state, stage: expected.stage },
+      rating,
+      reviewedAt,
+    );
 
-  return learner.submitReview(ctx, { cardId, rating, idempotencyKey, reviewedAt, next });
+    try {
+      return await learner.submitReview(ctx, {
+        cardId,
+        rating,
+        idempotencyKey,
+        reviewedAt,
+        expected,
+        next,
+      });
+    } catch (error) {
+      if (!(error instanceof learner.StaleStateError) || attempt >= STALE_STATE_RETRIES) throw error;
+    }
+  }
 }
 
 /**
@@ -184,11 +213,14 @@ export async function getLearnerProgress(ctx: LearnerContext): Promise<LearnerPr
   }
 
   return {
+    // Overwritten by the route from the session; the data layer cannot know
+    // whether an account is linked.
+    signedIn: false,
     reviewedCount: states.length,
     learningCount,
     masteredCount,
     dueCount,
     scheduledCount,
-    decks: await getDeckCatalog(ctx),
+    decks: await getDeckCatalog(ctx, states),
   };
 }

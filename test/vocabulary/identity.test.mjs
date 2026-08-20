@@ -38,10 +38,22 @@ function tokenWith(claims) {
   return `${b64({ alg: 'HS256', typ: 'JWT' })}.${b64(claims)}.not-a-real-signature`;
 }
 
-test('readClaims extracts sub and exp', async () => {
+test('readClaims extracts sub, exp and account status', async () => {
   const { readClaims } = await import(MODULE);
-  const claims = readClaims(tokenWith({ sub: 'abc-123', exp: 1800000000 }));
-  assert.deepEqual(claims, { sub: 'abc-123', exp: 1800000000 });
+
+  assert.deepEqual(readClaims(tokenWith({ sub: 'abc-123', exp: 1800000000, is_anonymous: false })), {
+    sub: 'abc-123',
+    exp: 1800000000,
+    isAnonymous: false,
+  });
+
+  // Only an explicit `false` means a linked account. Anything else — absent,
+  // null, a string — must read as anonymous, so a malformed token can never
+  // present itself as a signed-in learner.
+  for (const value of [undefined, null, true, 'false', 0]) {
+    const claims = readClaims(tokenWith({ sub: 'abc-123', exp: 1800000000, is_anonymous: value }));
+    assert.equal(claims.isAnonymous, true, `is_anonymous=${String(value)} must read as anonymous`);
+  }
 });
 
 test('readClaims rejects malformed tokens instead of guessing', async () => {

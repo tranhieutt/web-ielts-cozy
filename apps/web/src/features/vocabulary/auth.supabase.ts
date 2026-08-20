@@ -116,15 +116,19 @@ export async function refreshSession(refreshToken: string): Promise<TokenPair> {
  * the signature there — a forged cookie yields no rows rather than someone
  * else's rows. Never grant access on the strength of this function alone.
  */
-export function readClaims(token: string): { sub: string; exp: number } | null {
+export function readClaims(
+  token: string,
+): { sub: string; exp: number; isAnonymous: boolean } | null {
   const segments = token.split('.');
   if (segments.length !== 3) return null;
 
   try {
     const json = Buffer.from(segments[1], 'base64url').toString('utf8');
-    const claims = JSON.parse(json) as { sub?: unknown; exp?: unknown };
+    const claims = JSON.parse(json) as { sub?: unknown; exp?: unknown; is_anonymous?: unknown };
     if (typeof claims.sub !== 'string' || typeof claims.exp !== 'number') return null;
-    return { sub: claims.sub, exp: claims.exp };
+    // Absent means anonymous: a token that does not say it is a real account
+    // must not be treated as one.
+    return { sub: claims.sub, exp: claims.exp, isAnonymous: claims.is_anonymous !== false };
   } catch {
     return null;
   }

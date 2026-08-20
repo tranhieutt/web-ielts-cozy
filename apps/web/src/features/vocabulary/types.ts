@@ -62,6 +62,8 @@ export interface LearnerProgress {
   /** Cards already rated whose next review is still in the future. */
   scheduledCount: number;
   decks: DeckSummary[];
+  /** Whether a real account is linked (ADR-004 header affordance). */
+  signedIn: boolean;
 }
 
 /**

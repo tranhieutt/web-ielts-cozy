@@ -11,6 +11,7 @@ Mọi thay đổi đáng chú ý của IELTS Cozy được ghi trong file này.
 - Supabase Anonymous Auth as the learner identity (D-12, ADR-004): the first request mints a real `auth.users` UUID that IS the `learner_id`, carried in httpOnly cookies, so Row Level Security enforces isolation instead of application code.
 - Google sign-in that links onto the learner's existing anonymous UUID rather than authenticating a new user, so progress earned before signing in is kept; the code is exchanged server-side with PKCE so tokens never reach a URL fragment.
 - Durable, transactional review writes: the `submit_vocabulary_review` function records the review event and updates learner state in a single transaction, with idempotency enforced by a unique `(learner_id, idempotency_key)` constraint rather than application logic. Progress now survives a restart.
+- A passive sign-in link and an explicit "progress is stored in this browser" note on the vocabulary catalog, delivering the affordances ADR-004 committed to so an anonymous learner can actually keep their progress.
 - Integration coverage for the review write against the real project: transactionality, replay, concurrent requests collapsing to one event, cross-learner isolation, rejection of unpublished cards, and refusal to write without a session.
 
 - `vocabulary_deck_summary` view returning the deck catalog and its publishable card counts in one request, declared `security_invoker` so Row Level Security still governs what each caller sees.
@@ -62,6 +63,9 @@ Mọi thay đổi đáng chú ý của IELTS Cozy được ghi trong file này.
 
 ### Fixed
 
+- Two reviews of the same card could both compute their transition from the same state and both write it, costing the learner a stage while counting two reviews. The state update is now a compare-and-swap against the state the caller read, and a lost race answers 409 so the caller re-reads and retries.
+- The learner's session was not written back when starting Google sign-in, so a refresh-token rotation followed by cancelling on Google's screen left the browser holding dead credentials and stranded the learner's progress.
+- `/api/vocabulary/progress` fetched learner state twice per request — once directly and once inside the deck catalog — adding a full Supabase round trip to every catalog load.
 - A card whose `topics_all` already contains its primary topic was counted twice in per-deck progress, inflating a learner's totals (VOC-03).
 
 ### Security
