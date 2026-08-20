@@ -25,6 +25,17 @@ Source baseline là cố định: 23 file, 5.275 card unique, 7.309 `def_vi` kh�
 
 ## Quy trình chuẩn
 
+### Import catalog canonical
+
+Sinh catalog rồi dry-run importer. Importer chỉ nhận `*.jsonl`, validate UTF-8/one-object-per-line/ID/topic/`def_vi`, và upsert card idempotent ở `draft`.
+
+```powershell
+npm run vocab:import-catalog
+npm run vocab:import-catalog -- --apply
+```
+
+Importer không tạo deck membership hoặc publish status; đó là bước mapping/deck beta riêng.
+
 ### 1. Thay đổi content nguồn
 
 1. Chỉnh/sync chỉ file `.jsonl`.
