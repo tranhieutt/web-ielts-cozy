@@ -1,7 +1,7 @@
 # IELTS Cozy — Đặc tả chức năng Từ vựng
 
-**Phiên bản:** 0.1  
-**Trạng thái:** Bản nháp để duyệt trước khi code  
+**Phiên bản:** 0.2  
+**Trạng thái:** Đã rà soát kỹ thuật; chờ Product/Content duyệt mục 2, 5, 8 trước khi code  
 **Phạm vi:** Vocabulary MVP cho người học tự học IELTS B2C, tiếng Việt, Gen Z và Gen Alpha  
 **Thay thế chi tiết cho:** mục 6.9 trong [PRD](PRODUCT_SPEC.md)
 
@@ -31,7 +31,7 @@ MVP ưu tiên thói quen học hàng ngày và dữ liệu tiến độ đáng t
 - Hàng đợi ưu tiên từ đến hạn, sau đó từ mới thuộc bộ người học chọn.
 - Lịch lặp lại ngắt quãng hai mức: `Chưa thuộc` và `Thuộc rồi`.
 - Theo dõi tiến độ theo bộ từ và tổng số từ đã học/đã thuộc.
-- Lưu trạng thái người học từ đầu khi backend/database được triển khai; trước đăng nhập dùng định danh khách tạm thời, không được coi là bản sao lưu vĩnh viễn.
+- Lưu trạng thái người học từ đầu khi backend/database được triển khai; trước đăng nhập dùng Supabase Anonymous Auth UUID (D-12), tiến độ bền trên cùng thiết bị/trình duyệt nhưng không phải bản sao lưu đa thiết bị.
 - Responsive từ 360px; thao tác một tay, vùng chạm tối thiểu 44px.
 
 ### Ngoài MVP
@@ -105,7 +105,7 @@ Mỗi dòng JSONL là một `VocabularyCard` gốc. Parser phải đọc UTF-8, 
 | `id` | Có | Khóa toàn cục, bắt buộc, duy nhất. |
 | `word`, `is_phrase` | Có | Tiêu đề thẻ; cụm từ hiển thị nguyên văn. |
 | `topic`, `topics_all`, `topic_scores` | Có | `topic` quyết định deck chính; `topics_all` chỉ hỗ trợ khám phá sau này. |
-| `phonetic.uk`, `phonetic.us` | Có | Chọn UK mặc định; cho phép đổi US khi cả hai có dữ liệu. |
+| `phonetic.uk`, `phonetic.us` | Có | Chọn UK mặc định; cho phép đổi US khi cả hai có dữ liệu. Corpus hiện thiếu `phonetic.uk` ở 20 card và `phonetic.us` ở 90 card; 20 card thiếu UK đều là `is_phrase`. Thiếu phonetic thì ẩn hẳn vùng phonetic, không hiển thị chuỗi rỗng hay dấu ngoặc trống. |
 | `audio.uk`, `audio.us` | Không dùng runtime | Metadata Youdao gốc giữ để trace, không phát/proxy/cache. Runtime dùng object path Google TTS sau CDN upload. |
 | `cefr`, `target_band` | Có | Nhãn độ khó/filter. Thiếu CEFR hiển thị “Chưa phân cấp”. |
 | `senses` | Có | Lấy nghĩa ưu tiên theo policy ở mục 5. |
@@ -127,17 +127,21 @@ Mockup/PRD yêu cầu nghĩa và ví dụ tiếng Việt. Đợt enrichment ngà
 
 ### Fallback hiển thị
 
-1. `def_vi` đã có cho toàn bộ corpus hiện tại: hiển thị nghĩa Việt làm nội dung chính.
-2. Nếu chưa có nghĩa Việt nhưng có `def_en`: hiển thị nghĩa Anh, kèm nhãn “Nghĩa tiếng Việt đang cập nhật”.
-3. Nếu không có cả nghĩa Việt lẫn nghĩa Anh: không publish thẻ.
+1. `def_vi` là **bắt buộc để publish**. Mọi sense của thẻ publishable phải có `def_vi` non-empty; corpus hiện đạt 7.309/7.309. Đây là quy tắc đang được `scripts/vocabulary/validate-content.mjs` thực thi cứng.
+2. Không có fallback "nghĩa Anh thay nghĩa Việt" cho `senses`. Thẻ thiếu `def_vi` bị chặn publish và báo lỗi kèm card ID; không đẩy sang UI kèm nhãn tạm.
+3. `def_en` hiển thị như nội dung bổ trợ song ngữ khi có, không thay thế `def_vi`.
 4. Không dùng tiếng Trung làm fallback trong UI mặc định. Chỉ có thể mở tính năng Trung ngữ qua quyết định sản phẩm riêng.
-5. Ví dụ/collocation tiếng Việt tuân theo quy tắc tương tự; bản Anh vẫn được phép hiển thị nếu được duyệt.
+5. `examples[].vi` và `collocations[].vi` hiện chưa có và **không** bắt buộc để publish: hiển thị bản tiếng Anh đã duyệt, không kèm nhãn "đang cập nhật".
+
+Lý do tách rule 1–2 khỏi rule 5: nghĩa là nội dung lõi của thẻ, thiếu thì thẻ vô dụng với người học Việt; ví dụ/collocation là bổ trợ, thiếu bản Việt vẫn dùng được. Quy tắc này phải khớp một-một với validator, nếu lệch thì sửa cả hai cùng lúc.
 
 ### Release gate nội dung
 
 - Coverage `def_vi` đã đạt cho toàn bộ deck. Bản dịch máy vẫn cần reviewer song ngữ audit trước production, ưu tiên Health, Government/Law, C1/C2 và các nghĩa dịch từ tiếng Trung.
-- Mỗi thẻ publish phải có: `id`, `word`, tối thiểu một `sense.def_en` hoặc `sense.def_vi`, và topic hợp lệ.
-- 10.550 MP3 Google TTS đã pass manifest/file integrity audit. Audio chỉ bật sau khi bucket Supabase/CDN upload và browser delivery probe pass; không gọi URL Youdao từ browser production.
+- Mỗi thẻ publish phải có: `id`, `word`, topic hợp lệ, và `def_vi` non-empty ở **mọi** sense.
+- 10.550 MP3 Google TTS đã pass manifest/file integrity audit. Lưu ý integrity audit chỉ chứng minh file tải được và đúng định dạng MP3, **không** chứng minh đọc đúng.
+- Trước khi bật audio phải QA phát âm bằng tai tối thiểu 38 card đồng tự khác âm (`record`, `content`, `subject`, `present`, `separate`, `deliberate`, `advocate`, `conflict`, `tear`, `bow`, `desert`, `lead`…). `generate-audio.mjs` gửi plain text nên Google TTS tự chọn một cách đọc; corpus đã có IPA ở `phonetic.uk`/`phonetic.us` nên card sai phải sinh lại bằng SSML `<phoneme>`.
+- Audio chỉ bật sau khi bucket Supabase/CDN upload, browser delivery probe pass và QA phát âm pass; không gọi URL Youdao từ browser production.
 - Không hiển thị text lỗi mã hóa, source URL, tag nội bộ, hay văn bản chưa review.
 
 ## 6. Cấu trúc màn hình
@@ -164,7 +168,7 @@ Query/route state tối thiểu: `deck`, `mode` (`due` hoặc `new`), `limit`. R
 | Vùng | Hành vi |
 |---|---|
 | Thanh phiên | Hiển thị vị trí, số thẻ còn lại, nút thoát; tiến độ đã chấm mới được tính. |
-| Mặt trước | Word/phrase, loại từ nếu có, phonetic UK mặc định, audio control, nhãn CEFR/band. |
+| Mặt trước | Word/phrase, loại từ nếu có, phonetic UK mặc định, audio control, nhãn CEFR/band. Card không có phonetic (20 card `is_phrase`) ẩn vùng phonetic, các phần còn lại giữ nguyên. |
 | Lật thẻ | Tap/click/Enter lật thẻ. Animation phải tôn trọng `prefers-reduced-motion`. |
 | Mặt sau | Nghĩa theo policy ngôn ngữ, tối đa 1–2 sense đầu tiên, một ví dụ, collocation khi có. |
 | Đánh giá | `Chưa thuộc` và `Thuộc rồi` chỉ active sau khi mặt sau đã được mở. |
@@ -207,21 +211,51 @@ Hiển thị số thẻ đã ôn, số chọn Thuộc rồi, số sẽ quay lạ
 
 Hai lựa chọn đúng với design hiện tại. Đây là lịch deterministic, dễ kiểm thử; có thể thay bằng FSRS sau khi đủ dữ liệu học thực.
 
-| State trước | Chọn `Chưa thuộc` | Chọn `Thuộc rồi` |
-|---|---|---|
-| `new` | `learning`, ôn lại sau 10 phút | `review`, stage 1, hẹn 1 ngày |
-| `learning` | giữ `learning`, hẹn 10 phút | `review`, stage 1, hẹn 1 ngày |
-| `review`, stage 1–6 | giảm 1 stage, tối thiểu stage 0; hẹn 10 phút | tăng 1 stage, tối đa stage 6; hẹn theo lịch |
-| `mastered` (stage 6) | `review`, stage 5; hẹn 10 phút | giữ `mastered`; hẹn 60 ngày |
+### 8.1 Stage và interval
 
-Lịch `Thuộc rồi`: stage 1 = 1 ngày, stage 2 = 3 ngày, stage 3 = 7 ngày, stage 4 = 14 ngày, stage 5 = 30 ngày, stage 6 = 60 ngày.
+Stage là số nguyên 0–6. Mỗi stage có đúng một interval:
 
-Quy tắc thêm:
+| Stage | 0 | 1 | 2 | 3 | 4 | 5 | 6 |
+|---|---|---|---|---|---|---|---|
+| Interval | 10 phút | 1 ngày | 3 ngày | 7 ngày | 14 ngày | 30 ngày | 60 ngày |
 
-- Thẻ `Chưa thuộc` không được xuất hiện lại ngay lập tức; chen lại sau ít nhất 3 thẻ khác, hoặc chuyển sang phiên tiếp theo nếu hàng đợi không đủ.
+### 8.2 Bảng chuyển trạng thái đầy đủ
+
+`due_at` luôn = thời điểm chấm + interval của stage kết quả. Bảng này là đặc tả đầy đủ, không suy diễn thêm:
+
+| State trước | Stage trước | Chọn `Chưa thuộc` | Chọn `Thuộc rồi` |
+|---|---|---|---|
+| `new` | — | `learning` stage 0, +10 phút | `review` stage 1, +1 ngày |
+| `learning` | 0 | `learning` stage 0, +10 phút | `review` stage 1, +1 ngày |
+| `review` | 1 | `learning` stage 0, +10 phút | `review` stage 2, +3 ngày |
+| `review` | 2 | `review` stage 1, +1 ngày | `review` stage 3, +7 ngày |
+| `review` | 3 | `review` stage 2, +3 ngày | `review` stage 4, +14 ngày |
+| `review` | 4 | `review` stage 3, +7 ngày | `review` stage 5, +30 ngày |
+| `review` | 5 | `review` stage 4, +14 ngày | **`mastered` stage 6**, +60 ngày |
+| `mastered` | 6 | `review` stage 5, +30 ngày | `mastered` stage 6, +60 ngày |
+
+Hai điểm trước đây mơ hồ, nay chốt:
+
+- Hạ stage từ `review` stage 1 khi chọn `Chưa thuộc` đưa thẻ về `learning` stage 0 (+10 phút), không giữ `review` stage 0. State `review` không tồn tại ở stage 0.
+- Đạt stage 6 tự động đổi state sang `mastered` trong cùng transaction. `mastered` là hệ quả của stage, không phải cờ riêng.
+
+### 8.3 Hàng đợi trong phiên tách khỏi `due_at`
+
+Đây là hai cơ chế khác nhau, trước đây bị lẫn:
+
+- **`due_at`** quyết định thẻ có được nạp vào một phiên **mới** hay không. Chỉ dùng lúc build queue.
+- **Hàng đợi trong phiên** là danh sách trong bộ nhớ, **không** đọc lại `due_at`. Thẻ bị chấm `Chưa thuộc` được chèn lại vào hàng đợi hiện tại sau ít nhất 3 thẻ khác, kể cả khi `due_at` của nó là +10 phút ở tương lai.
+- Nếu hàng đợi còn ít hơn 3 thẻ chưa chấm, thẻ `Chưa thuộc` không chèn lại; nó chờ phiên sau theo `due_at`.
+- Một phiên không bao giờ tự kéo dài vô hạn: mỗi thẻ được chèn lại tối đa 2 lần trong cùng phiên, sau đó chờ phiên sau.
+
+Không có quy tắc này thì thẻ +10 phút không bao giờ quay lại trong một phiên dài 3–5 phút, và mức `Chưa thuộc` mất tác dụng luyện tập tức thời.
+
+### 8.4 Quy tắc chung
+
 - `mastered` nghĩa là đã trả lời đúng ở stage 6; không phải số lần từng nhìn thấy thẻ.
 - Tất cả mốc thời gian lưu UTC; UI hiển thị theo timezone của người học.
 - Một click chỉ tạo một review event. Request retry cần idempotency key để không nhảy hai stage.
+- Lần chèn lại trong phiên vẫn tạo review event riêng; stage đi theo bảng 8.2 như mọi lần chấm khác.
 
 ## 9. Data model mục tiêu
 
@@ -234,9 +268,18 @@ Không tạo schema ở bước spec này. Khi triển khai database, tách cont
 | `vocabulary_deck_cards` | `deck_slug`, `card_id`, position, is_primary | Membership deck, không nhân bản card. |
 | `learner_card_states` | `learner_id`, `card_id`, state, stage, due_at, first_seen_at, last_reviewed_at, review_count | Trạng thái hiện tại, một hàng mỗi learner/card. |
 | `learner_card_reviews` | `id`, learner_id, card_id, rating, reviewed_at, previous_state, next_due_at, idempotency_key | Lịch sử audit và analytics. |
-| `guest_identities` | `guest_id`, created_at, migration_target_user_id | Phân biệt tiến độ khách với user đăng nhập. |
 
-Ràng buộc database sau này: RLS theo `learner_id`; content chỉ đọc; review update transactionally state + event; không lưu nghĩa/âm thanh nhạy cảm của người học vì không có.
+### Learner identity
+
+Không tạo bảng `guest_identities` và không sinh `guest_id` riêng. Theo D-12 trong [Decision log](../architecture/DECISION_LOG.md), `learner_id` **là** UUID của Supabase Anonymous Auth:
+
+- Khách vào lần đầu: gọi anonymous sign-in, nhận UUID thật trong `auth.users`.
+- Khách đăng ký/đăng nhập sau: Supabase link identity vào **cùng** UUID đó, nên `learner_card_states` và `learner_card_reviews` không cần migrate hàng nào.
+- Nhờ vậy RLS dùng thẳng `auth.uid()`, không phải tự viết lớp phân giải identity song song.
+
+Một bảng identity tự quản sẽ tạo hai nguồn sự thật cho `learner_id` và buộc phải viết tay bước claim progress mà Supabase đã làm sẵn. Nếu sau này thực sự cần tách, phải cập nhật ADR trước.
+
+Ràng buộc database sau này: RLS theo `auth.uid()`; content chỉ đọc; review update transactionally state + event; không lưu nghĩa/âm thanh nhạy cảm của người học vì không có.
 
 ## 10. Requirements có thể nghiệm thu
 
@@ -247,15 +290,21 @@ Ràng buộc database sau này: RLS theo `learner_id`; content chỉ đọc; rev
 | VOC-03 | Không trùng tiến độ | Một card nằm nhiều topic vẫn chỉ có một state ôn cho mỗi người học. |
 | VOC-04 | Học/ôn được | Người học lật card, nghe audio khi khả dụng, chấm hai mức và xem card kế. |
 | VOC-05 | Không chấm khi chưa xem đáp án | Hai nút đánh giá disabled trước lần lật đầu tiên. |
-| VOC-06 | Lịch ôn đúng | Test fixture xác nhận toàn bộ chuyển stage và `due_at` ở mục 8. |
+| VOC-06 | Lịch ôn đúng | Test fixture xác nhận toàn bộ 16 ô của bảng 8.2 và interval bảng 8.1; kiểm cả việc đạt stage 6 đổi state sang `mastered`. |
+| VOC-06b | Hàng đợi trong phiên | Thẻ `Chưa thuộc` quay lại sau đúng >= 3 thẻ khác dù `due_at` ở tương lai; tối đa 2 lần chèn lại; hàng đợi còn < 3 thẻ thì không chèn. |
 | VOC-07 | Lưu bền vững | Reload sau review thành công vẫn phản ánh state/due_at mới. |
-| VOC-08 | Nội dung Việt an toàn | Không có `zh` xuất hiện trong UI mặc định; thiếu `vi` dùng đúng fallback đã công bố. |
+| VOC-08 | Nội dung Việt an toàn | Không có `zh` xuất hiện trong UI mặc định hay trong payload API trả cho learner; thẻ thiếu `def_vi` bị chặn publish chứ không rơi vào UI. |
+| VOC-08b | Phonetic khuyết | 20 card `is_phrase` không phonetic vẫn render đúng, ẩn vùng phonetic, không hiện ngoặc rỗng. |
 | VOC-09 | Responsive/a11y | Luồng hoàn tất ở 360px, keyboard-only và reduced-motion; control audio/flip/rating có nhãn. |
 | VOC-10 | Khả năng phục hồi | Audio hỏng hoặc deck trống không làm mất review đã lưu hay làm app trắng màn hình. |
 
 ## 11. Analytics đề xuất
 
-Không gửi word, nghĩa, hoặc lịch sử card đầy đủ vào analytics bên thứ ba. Dùng card ID/category đã pseudonymize khi cần phân tích.
+Không gửi word, nghĩa, ví dụ hay lịch sử card đầy đủ vào analytics bên thứ ba.
+
+`card_id` và `deck_slug` là định danh **nội dung công khai**, không phải dữ liệu cá nhân, nên được gửi nguyên văn. Thứ phải pseudonymize là định danh **người học**: không bao giờ gửi `learner_id`/`auth.uid()` sang analytics bên thứ ba; dùng `session_id` sinh riêng cho mỗi phiên và không map ngược được về tài khoản.
+
+Theo D-05 (hỗ trợ người học vị thành niên), analytics là consent-gated: chưa có consent thì **không** event nào rời thiết bị. Điều này chặn trước sự kiện đầu tiên, không phải lọc sau.
 
 | Event | Thuộc tính tối thiểu |
 |---|---|
@@ -277,13 +326,20 @@ Không gửi word, nghĩa, hoặc lịch sử card đầy đủ vào analytics b
 | 5.275 cards trong static bundle | Tải chậm nếu nhét toàn bộ JSONL vào browser | Engineering: ingest/index/paginate trước runtime |
 | Guest-first nhưng cần database | Rủi ro mất tiến độ khi đổi thiết bị | Product: thời điểm mời tạo tài khoản/claim progress |
 | Chất lượng topic/CEFR không đồng đều | Deck đề xuất sai mức | Content owner: review/publish status |
+| TTS đọc sai 38 từ đồng tự khác âm | Dạy sai phát âm, lỗi nội dung nghiêm trọng với sản phẩm luyện IELTS | Content owner: QA nghe; Engineering: sinh lại bằng SSML `<phoneme>` từ IPA có sẵn |
+| 10.550 MP3 chỉ nằm trên máy local, `.gitignore` loại `.generated/audio/` | Mất máy trước khi upload xong là phải sinh lại toàn bộ, tốn chi phí TTS | Engineering: backup artifact + `manifest.json` **trước** khi upload |
+| Repo chưa có CI (`.github/` không tồn tại) | D-16 và D-18 yêu cầu test/CI là merge gate; content quality gate không có chỗ chạy | Engineering: dựng pipeline tối thiểu trước M1 |
+| Chưa có age gate/consent cho người học vị thành niên | D-05 chưa được thực thi trong khi §11 đã lên lịch 8 event | Product + Engineering: consent trước event đầu tiên |
+| Chưa quyết định phạm vi offline | D-14 chốt "lightweight offline support" nhưng §7 để tùy chọn | Product: giữ hay hoãn D-14 cho release này |
 
 ## 13. Câu hỏi mở
 
 1. Có dịch tiếp `examples[].vi` và `collocations[].vi` sau khi QA xong `def_vi` không?
 2. Cấp Supabase project URL và service-role key local để upload manifest MP3 vào bucket `vocabulary-audio`?
-3. Người học khách giữ tiến độ bao lâu và lúc nào được mời tạo tài khoản để đồng bộ?
+3. Người học khách giữ tiến độ bao lâu và lúc nào được mời tạo tài khoản để đồng bộ? Lưu ý anonymous UUID đã giữ tiến độ trên cùng thiết bị/trình duyệt; câu hỏi còn lại chỉ là thời điểm mời và cách xử lý đổi thiết bị.
 4. Deck nào được publish beta đầu tiên? Khuyến nghị: Environment, Education, Technology, General Academic.
+5. D-14 (lightweight offline) có nằm trong release Vocabulary này không, hay hoãn sang release sau? Hiện plan không có task nào cho offline.
+6. Consent/age gate cho người học vị thành niên (D-05) do release Vocabulary tự làm hay chờ luồng onboarding chung?
 
 ## 14. Definition of Ready để code
 
@@ -292,3 +348,6 @@ Không gửi word, nghĩa, hoặc lịch sử card đầy đủ vào analytics b
 - Engineering chốt pipeline JSONL -> catalog/index; không fetch 23 file thô vào first load.
 - Áp dụng migration bucket Supabase, upload manifest MP3 và test CDN delivery; giữ feature flag off cho tới lúc probe pass.
 - Design bổ sung states: card chưa lật, loading, audio error, save error, empty due, completed, offline.
+- Engineering dựng CI tối thiểu chạy được `npm run vocab:validate-content`; D-16/D-18 yêu cầu gate này tồn tại trước khi merge content.
+- Product chốt consent/age gate (D-05) và phạm vi offline (D-14) cho release này.
+- Content owner QA phát âm 38 card đồng tự khác âm; card sai được sinh lại trước khi bật `audio_enabled`.
