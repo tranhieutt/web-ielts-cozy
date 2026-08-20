@@ -12,6 +12,7 @@ Mọi thay đổi đáng chú ý của IELTS Cozy được ghi trong file này.
 - Deterministic two-rating Vocabulary SRS domain function with all 16 specified transitions, UTC due dates, and unit coverage.
 - Vocabulary validator tests and Google TTS token-refresh/retry tests.
 - Vocabulary catalog and learner-state Supabase migration, RLS policies, pgTAP coverage, and GitHub local database-test workflow.
+- Draft Vocabulary deck importer maps canonical cards into 23 Vietnamese-named decks and 8,271 shared-card memberships, with deck/card catalog versions kept in sync.
 - Static IELTS runtime: Home, Dashboard, Vocabulary flashcards, Grammar feedback, Listening demo, and Progress screen.
 - Browser-local learning progress with dependency-free runtime verification for Vercel build.
 - Architecture scaffold cho B2C IELTS MVP: Vocabulary, Grammar, Listening.
@@ -24,6 +25,7 @@ Mọi thay đổi đáng chú ý của IELTS Cozy được ghi trong file này.
 ### Changed
 
 - Vocabulary content validation now hard-fails unless source totals are exactly 23 files, 5,275 unique cards, and 7,309 Vietnamese definitions; canonical output rejects Chinese fields and Youdao URLs.
+- Vocabulary execution plan and content runbook now record catalog/deck import status, dry-run command, and beta-publish gate.
 - Google TTS generation refreshes expiring tokens and retries one HTTP 401 with a fresh token while preserving resumable audio generation.
 - Optimized runtime imagery: responsive WebP hero and lazy-loaded card `srcset` variants replace PNG assets.
 - Root runtime now renders full 11-screen Design Code mockup; runtime assets are served from `assets/`.
