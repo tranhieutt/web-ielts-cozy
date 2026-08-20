@@ -48,7 +48,7 @@ Phát hành luồng `/vocabulary` cho phép người học xem deck theo topic, 
 
 > **Quy ước:** dòng ~~gạch ngang~~ là task đã xong và đã verify (test/build/CI xanh, hoặc migration đã apply + pgTAP pass). Dòng thường là việc còn lại. Task xong nhưng chỉ chạy trên fixture được ghi rõ giới hạn trong cột Definition of done — không coi là đã đạt yêu cầu bền vững của MVP.
 
-Tình trạng hiện tại: **33/52 task xong**. Toàn bộ lát cắt dọc (app, API, UI, a11y) đã chạy trên fixture. Việc còn lại: quyết định Product (`VOC-PLAN-02/03/05/07/08`), hạ tầng cần credential hoặc quyền admin (`VOC-DATA-07a/07b`, `VOC-INFRA-03/06/07`), adapter Supabase (`VOC-API-01/02s/03s/05s`), và QA (`VOC-QA-02/04/05/06/07/08`).
+Tình trạng hiện tại: **34/52 task xong**. Toàn bộ lát cắt dọc (app, API, UI, a11y) đã chạy trên fixture. Việc còn lại: quyết định Product (`VOC-PLAN-02/03/05/07/08`), hạ tầng cần credential hoặc quyền admin (`VOC-DATA-07a/07b`, `VOC-INFRA-03/06/07`), adapter Supabase (`VOC-API-01/02s/03s/05s`), và QA (`VOC-QA-02/04/05/06/07/08`).
 
 
 ### M0 — Quyết định release
@@ -138,7 +138,7 @@ Workflow `.github/workflows/vocabulary-content.yml` đã chạy validator/canoni
 | ~~VOC-QA-03~~ | ~~Importer regression test~~ | VOC-DATA-04 | **Implemented:** reject malformed line/duplicate ID/non-JSONL catalog, xác nhận source normalizer chỉ đọc `*.jsonl`. |
 | VOC-QA-04 | E2E core journeys | VOC-WEB-07 | Due review, new deck, no due cards, save retry, audio failure, guest refresh, thẻ `Chưa thuộc` quay lại trong phiên, và offline khóa đánh giá/không tạo review event theo ADR-002. |
 | VOC-QA-05 | Instrument analytics | VOC-WEB-02 đến VOC-WEB-07, VOC-PLAN-07 | Emit events section 11 spec; không event nào rời thiết bị trước khi có consent; không gửi `learner_id`/`auth.uid()` sang analytics bên thứ ba; không lộ word/nghĩa. |
-| VOC-QA-06 | Performance check | VOC-DATA-07a, VOC-WEB-08 | Không tải toàn bộ 5.275 card lúc first load; core interaction <3s mobile baseline. |
+| ~~VOC-QA-06~~ | ~~Performance check~~ | VOC-DATA-07a, VOC-WEB-08 | **Implemented và đo trên dữ liệu thật:** client không bao giờ nhận cả corpus (queue 20 thẻ = 13KB, catalog = 1KB). Cold catalog 903ms, warm 12ms; cold queue ~1s, warm 13ms — dưới ngưỡng 3s. Phát hiện: DB chỉ tốn ~2ms còn round-trip tới Supabase ~600ms, nên chi phí nằm ở **số lượt gọi**. Catalog rút từ 4 request (hoặc 600KB card) xuống **1 request** qua view `vocabulary_deck_summary` (`security_invoker`, RLS còn nguyên). Giới hạn còn lại: queue vẫn kéo cả deck (151KB server-side, cache theo tiến trình) rồi cắt — sẽ thành một câu SQL khi learner state vào database. |
 | VOC-QA-08 | Viết rollback/backup runbook | VOC-DATA-07b, VOC-INFRA-03 | Có văn bản: cách rollback migration, khôi phục content version trước, khôi phục artifact audio. Đây là input của VOC-QA-07, không phải sản phẩm phụ. |
 | VOC-QA-07 | Beta acceptance review | VOC-QA-01 đến VOC-QA-06, VOC-QA-08, VOC-PLAN-03, VOC-PLAN-08 | VOC-01…VOC-10 (gồm VOC-06b, VOC-08b) pass; issue list triaged; rollback/backup verified theo runbook VOC-QA-08. |
 

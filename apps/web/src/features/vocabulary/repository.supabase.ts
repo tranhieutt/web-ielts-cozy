@@ -17,10 +17,11 @@ import type { VocabularyCard } from './types';
 
 const PAGE_SIZE = 1000;
 
-interface DeckRow {
+interface DeckSummaryRow {
   slug: string;
   display_name_vi: string;
   publish_status: string;
+  publishable_card_count: number;
 }
 
 function config() {
@@ -106,18 +107,22 @@ function toCard(row: CardRow): VocabularyCard {
   };
 }
 
-let deckCache: Promise<DeckRow[]> | null = null;
+let summaryCache: Promise<DeckSummaryRow[]> | null = null;
 const deckCardCache = new Map<string, Promise<VocabularyCard[]>>();
 const cardCache = new Map<string, VocabularyCard>();
 
-export async function listDecks(): Promise<
-  Array<{ slug: string; display_name_vi: string; publish_status: string }>
-> {
-  deckCache ??= restGetAll<DeckRow>(
-    (offset) =>
-      `vocabulary_decks?select=slug,display_name_vi,publish_status&order=slug&limit=${PAGE_SIZE}&offset=${offset}`,
+/**
+ * Whole catalog in ONE request.
+ *
+ * Round-trip latency to the project is ~600ms while the count itself runs in
+ * ~2ms, so the cost that matters is the number of requests. `vocabulary_deck_summary`
+ * is a `security_invoker` view, so RLS still hides unpublished decks and cards.
+ */
+export async function listDeckSummaries(): Promise<DeckSummaryRow[]> {
+  summaryCache ??= restGet<DeckSummaryRow>(
+    'vocabulary_deck_summary?select=slug,display_name_vi,publish_status,publishable_card_count&order=slug',
   );
-  return deckCache;
+  return summaryCache;
 }
 
 export async function listPublishableCards(deckSlug: string): Promise<VocabularyCard[]> {
@@ -142,6 +147,24 @@ export async function listPublishableCards(deckSlug: string): Promise<Vocabulary
   const cards = await cached;
   for (const card of cards) cardCache.set(card.id, card);
   return cards;
+}
+
+export async function findCards(cardIds: string[]): Promise<VocabularyCard[]> {
+  if (cardIds.length === 0) return [];
+
+  const missing = cardIds.filter((id) => !cardCache.has(id));
+  if (missing.length > 0) {
+    const list = missing.map((id) => `"${id}"`).join(',');
+    const rows = await restGet<CardRow>(
+      `vocabulary_cards?select=${CARD_COLUMNS}&id=in.(${encodeURIComponent(list)})`,
+    );
+    for (const row of rows) {
+      const card = toCard(row);
+      cardCache.set(card.id, card);
+    }
+  }
+
+  return cardIds.map((id) => cardCache.get(id)).filter((card): card is VocabularyCard => !!card);
 }
 
 export async function findCard(cardId: string): Promise<VocabularyCard | undefined> {
