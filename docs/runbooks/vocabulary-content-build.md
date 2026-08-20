@@ -6,6 +6,12 @@ Biến corpus vocabulary thành content runtime có thể publish: nghĩa Việt
 
 Không dùng CSV, `index.json`, URL audio Youdao hoặc file audio copy từ bên thứ ba.
 
+## Pull-request content gate
+
+Workflow `.github/workflows/vocabulary-content.yml` chạy khi Vocabulary JSONL, script/test liên quan, `package.json` hoặc workflow thay đổi. Job `vocabulary-content` dùng Node 20 và chạy source validator, canonical catalog validation, normalizer tests, vocabulary contract tests.
+
+Source baseline là cố định: 23 file, 5.275 card unique, 7.309 `def_vi` không rỗng. Muốn thay baseline phải có review content rõ ràng, cập nhật validator/test trong cùng pull request. GitHub repository admin phải mark check `vocabulary-content` là required branch-protection; YAML không tự bật được setting này.
+
 ## Contract đầu vào và đầu ra
 
 | Hạng mục | Contract |
@@ -61,7 +67,7 @@ npm run vocab:generate-audio -- --accent both
 npm run vocab:generate-audio -- --project hanzi-cozy-diary --accent both --limit 10 --apply
 ```
 
-4. Chạy full. Runner bốn worker, retry, manifest checkpoint mỗi 25 file; rerun sẽ skip file hợp lệ đã có.
+4. Chạy full. Runner bốn worker, refresh access token trước expiry, retry một HTTP 401 với token mới, manifest checkpoint mỗi 25 file; rerun sẽ skip file hợp lệ đã có.
 
 ```powershell
 npm run vocab:generate-audio -- --project hanzi-cozy-diary --accent both --concurrency 4 --apply
@@ -108,8 +114,9 @@ Service-role key chỉ nằm local/CI secret. Không đưa vào browser, Vercel 
 3. Cache CDN dùng object path versioned. Khi thay voice/file, tăng `v2`, không overwrite `v1` đang phát hành.
 4. Rollback: tắt audio feature flag hoặc quay content version/path về version trước; không xóa asset đang có active reference.
 
-## Trạng thái hiện tại — 2026-08-19
+## Trạng thái hiện tại — 2026-08-20
 
 - 23 JSONL, 5.275 card, 7.309 `def_vi`: validated.
 - 10.550 MP3 Google TTS: local validated, 5.275 UK + 5.275 US, 91.736.256 bytes.
 - Supabase migration/uploader: bucket `vocabulary-audio` đã migrate; upload 10.550 object hoàn tất; public CDN probe một object UK và US trả `206 audio/mpeg`.
+- CI/content gate: workflow + validator + contract tests đã có; chờ repository admin bật required check `vocabulary-content`.

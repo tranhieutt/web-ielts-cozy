@@ -1,12 +1,15 @@
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { existsSync, mkdirSync, readFileSync, readdirSync, renameSync, writeFileSync } from 'node:fs';
-import { join, relative } from 'node:path';
+import { join, relative, resolve } from 'node:path';
+import { pathToFileURL } from 'node:url';
 
 const ROOT = process.cwd();
 const CONTENT_DIR = join(ROOT, 'content', 'vocabulary', 'ielts_vocab_by_topic');
 const DEFAULT_OUTPUT_DIR = join(ROOT, '.generated', 'audio', 'vocabulary');
 const DEFAULT_PROJECT = 'hanzi-cozy-diary';
+const DEFAULT_TOKEN_TTL_MS = 55 * 60 * 1000;
+export const TOKEN_REFRESH_WINDOW_MS = 5 * 60 * 1000;
 const WINDOWS_GCLOUD = join(
   process.env.LOCALAPPDATA ?? '',
   'Google',
@@ -17,14 +20,8 @@ const WINDOWS_GCLOUD = join(
 );
 
 const VOICES = {
-  uk: {
-    languageCode: 'en-GB',
-    name: process.env.TTS_VOICE_UK ?? 'en-GB-Neural2-A',
-  },
-  us: {
-    languageCode: 'en-US',
-    name: process.env.TTS_VOICE_US ?? 'en-US-Neural2-A',
-  },
+  uk: { languageCode: 'en-GB', name: process.env.TTS_VOICE_UK ?? 'en-GB-Neural2-A' },
+  us: { languageCode: 'en-US', name: process.env.TTS_VOICE_US ?? 'en-US-Neural2-A' },
 };
 
 function argumentValue(name) {
@@ -40,9 +37,7 @@ function parsePositiveInteger(value, name) {
 }
 
 const accent = argumentValue('--accent') ?? 'uk';
-if (!['uk', 'us', 'both'].includes(accent)) {
-  throw new Error('--accent must be uk, us, or both.');
-}
+if (!['uk', 'us', 'both'].includes(accent)) throw new Error('--accent must be uk, us, or both.');
 
 const options = {
   accent,
@@ -76,7 +71,7 @@ function listCards() {
   return cards;
 }
 
-function getAccessToken() {
+export function getAccessToken() {
   const gcloudBin = process.env.GCLOUD_BIN || (process.platform === 'win32' ? WINDOWS_GCLOUD : 'gcloud');
   if (process.platform === 'win32' && (!gcloudBin || !existsSync(gcloudBin))) {
     throw new Error('gcloud not found. Set GCLOUD_BIN or install Google Cloud CLI.');
@@ -85,10 +80,44 @@ function getAccessToken() {
   const invocation = process.platform === 'win32'
     ? ['powershell.exe', ['-NoProfile', '-Command', `& '${gcloudBin.replace(/'/g, "''")}' ${command.join(' ')}`]]
     : [gcloudBin, command];
-  return execFileSync(invocation[0], invocation[1], {
-    encoding: 'utf8',
-    stdio: ['ignore', 'pipe', 'pipe'],
-  }).trim();
+  return execFileSync(invocation[0], invocation[1], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }).trim();
+}
+
+function normalizeToken(result, now, ttlMs) {
+  const token = typeof result === 'string' ? result : result?.token;
+  if (typeof token !== 'string' || !token.trim()) throw new Error('Google access-token provider returned an empty token.');
+  const expiresAt = typeof result === 'object' && Number.isFinite(result.expiresAt)
+    ? result.expiresAt
+    : now + ttlMs;
+  return { token: token.trim(), expiresAt };
+}
+
+export function createTokenProvider({
+  fetchToken = getAccessToken,
+  now = () => Date.now(),
+  refreshWindowMs = TOKEN_REFRESH_WINDOW_MS,
+  tokenTtlMs = DEFAULT_TOKEN_TTL_MS,
+} = {}) {
+  let current;
+  let refreshing;
+  async function refresh() {
+    if (!refreshing) {
+      refreshing = (async () => {
+        current = normalizeToken(await fetchToken(), now(), tokenTtlMs);
+        return current.token;
+      })().finally(() => {
+        refreshing = undefined;
+      });
+    }
+    return refreshing;
+  }
+  return {
+    async get() {
+      if (!current || current.expiresAt - now() <= refreshWindowMs) return refresh();
+      return current.token;
+    },
+    refresh,
+  };
 }
 
 function manifestPath() {
@@ -98,12 +127,7 @@ function manifestPath() {
 function readManifest() {
   const filePath = manifestPath();
   if (!existsSync(filePath)) {
-    return {
-      version: 1,
-      project: options.project,
-      audioEncoding: 'MP3',
-      entries: {},
-    };
+    return { version: 1, project: options.project, audioEncoding: 'MP3', entries: {} };
   }
   const manifest = JSON.parse(readFileSync(filePath, 'utf8'));
   if (manifest.version !== 1 || manifest.project !== options.project || typeof manifest.entries !== 'object') {
@@ -128,45 +152,54 @@ function outputPath(card, accentKey) {
   return join(options.outputDir, accentKey, `${card.id}.mp3`);
 }
 
-async function synthesize(card, accentKey, accessToken) {
+export async function synthesize(card, accentKey, tokenProvider, { fetchImpl = fetch, project = options.project } = {}) {
+  const accessToken = await tokenProvider.get();
   const voice = VOICES[accentKey];
-  const response = await fetch('https://texttospeech.googleapis.com/v1/text:synthesize', {
+  const response = await fetchImpl('https://texttospeech.googleapis.com/v1/text:synthesize', {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${accessToken}`,
       'Content-Type': 'application/json; charset=utf-8',
-      'x-goog-user-project': options.project,
+      'x-goog-user-project': project,
     },
     body: JSON.stringify({
       input: { text: card.text },
       voice,
-      audioConfig: {
-        audioEncoding: 'MP3',
-        speakingRate: 0.9,
-      },
+      audioConfig: { audioEncoding: 'MP3', speakingRate: 0.9 },
     }),
   });
   const payload = await response.json();
   if (!response.ok || !payload.audioContent) {
-    throw new Error(`Google TTS ${response.status}: ${JSON.stringify(payload)}`);
+    const error = new Error(`Google TTS request failed (HTTP ${response.status}).`);
+    error.status = response.status;
+    throw error;
   }
   return Buffer.from(payload.audioContent, 'base64');
 }
 
 function delay(milliseconds) {
-  return new Promise((resolve) => setTimeout(resolve, milliseconds));
+  return new Promise((resolveDelay) => setTimeout(resolveDelay, milliseconds));
 }
 
-async function synthesizeWithRetry(card, accentKey, accessToken) {
-  const maxAttempts = 3;
-  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+export async function synthesizeWithRetry(card, accentKey, tokenProvider, dependencies = {}) {
+  const maxAttempts = dependencies.maxAttempts ?? 3;
+  const wait = dependencies.delay ?? delay;
+  let retriedAuth = false;
+  let attempt = 0;
+  while (attempt < maxAttempts) {
     try {
-      return await synthesize(card, accentKey, accessToken);
+      return await synthesize(card, accentKey, tokenProvider, dependencies);
     } catch (error) {
+      if (error.status === 401 && !retriedAuth) {
+        retriedAuth = true;
+        await tokenProvider.refresh();
+        continue;
+      }
+      attempt += 1;
       if (attempt === maxAttempts) throw error;
       const waitMs = 1000 * 2 ** (attempt - 1);
       console.error(`${card.id} ${accentKey} attempt ${attempt}/${maxAttempts} failed; retrying in ${waitMs}ms.`);
-      await delay(waitMs);
+      await wait(waitMs);
     }
   }
   throw new Error('Audio retry loop exited unexpectedly.');
@@ -189,7 +222,7 @@ function isCurrent(item) {
     && existsSync(outputPath(item.card, item.accentKey));
 }
 
-async function main() {
+export async function main() {
   const cards = listCards();
   const selectedCards = options.limit ? cards.slice(0, options.limit) : cards;
   const manifest = readManifest();
@@ -207,25 +240,22 @@ async function main() {
     outputDir: relative(ROOT, options.outputDir),
     apply: options.apply,
   }, null, 2));
-
   if (!options.apply) {
     console.log('Dry run only. Add --apply to synthesize and write generated MP3 files.');
     return;
   }
 
   mkdirSync(options.outputDir, { recursive: true });
-  const accessToken = getAccessToken();
+  const tokenProvider = createTokenProvider();
   let nextIndex = 0;
   let completed = 0;
   const checkpointEvery = 25;
-
   async function worker() {
     while (true) {
       const item = pending[nextIndex];
       nextIndex += 1;
       if (!item) return;
-
-      const audio = await synthesizeWithRetry(item.card, item.accentKey, accessToken);
+      const audio = await synthesizeWithRetry(item.card, item.accentKey, tokenProvider);
       const target = outputPath(item.card, item.accentKey);
       mkdirSync(join(options.outputDir, item.accentKey), { recursive: true });
       const temp = `${target}.tmp`;
@@ -246,10 +276,11 @@ async function main() {
       if (options.batchDelayMs > 0) await delay(options.batchDelayMs);
     }
   }
-
   const workerCount = Math.min(options.concurrency, pending.length);
   await Promise.all(Array.from({ length: workerCount }, () => worker()));
   writeManifest(manifest);
 }
 
-await main();
+if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
+  await main();
+}

@@ -1,0 +1,31 @@
+name: Vocabulary content
+
+on:
+  pull_request:
+    paths:
+      - 'content/vocabulary/**'
+      - 'scripts/vocabulary/**'
+      - 'test/vocabulary/**'
+      - 'package.json'
+      - '.github/workflows/vocabulary-content.yml'
+
+jobs:
+  vocabulary-content:
+    name: vocabulary-content
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Validate vocabulary source baseline
+        run: npm run vocab:validate-content
+      - name: Build and validate canonical learner catalog
+        run: |
+          catalog_dir="$RUNNER_TEMP/ielts-cozy-vocabulary-catalog"
+          npm run vocab:normalize-content -- --out-dir "$catalog_dir" --apply
+          node scripts/vocabulary/validate-content.mjs --canonical-dir "$catalog_dir"
+      - name: Run normalizer tests
+        run: npm run vocab:test-normalize
+      - name: Run vocabulary contract tests
+        run: node --test test/vocabulary/*.test.mjs

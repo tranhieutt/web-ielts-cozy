@@ -11,6 +11,8 @@ npm run vocab:generate-audio -- --project hanzi-cozy-diary --accent both --apply
 
 Generated files and manifests remain local under `.generated/audio/vocabulary/`; Git ignores this path.
 
+Generator refreshes Google access token before expiry and, on one HTTP 401, retries with a fresh token before normal retry policy. It never logs token text. Checkpoint/resume behavior remains unchanged.
+
 ## Supabase CDN delivery
 
 1. Apply migration `supabase/migrations/202608190001_create_vocabulary_audio_bucket.sql` to create public bucket `vocabulary-audio`.

@@ -1,7 +1,7 @@
 # IELTS Cozy — Kế hoạch thực thi Vocabulary MVP
 
 **Nguồn yêu cầu:** [Vocabulary feature spec](VOCABULARY_SPEC.md)  
-**Trạng thái:** Ready for task breakdown sau khi Product/Content duyệt spec v0.2; chưa bắt đầu implement application  
+**Trạng thái:** Đã có nền tảng content CI và SRS pure domain; application, database và API runtime chưa bắt đầu. Product/Content vẫn cần chốt beta deck, consent và QA.  
 **Phạm vi release:** Vocabulary MVP cho người học khách và người dùng đăng nhập; không AI scoring, không Speaking, không dịch ví dụ/collocation ở release này.
 
 ## 1. Mục tiêu delivery
@@ -20,7 +20,7 @@ Phát hành luồng `/vocabulary` cho phép người học xem deck theo topic, 
 | Audio source / artifact | Google TTS đã sinh và upload 10.550 MP3 UK/US; Supabase CDN delivery probe UK/US pass, chờ QA phát âm trước runtime enable |
 | Backup 10.550 MP3 | **Chưa có.** `.gitignore` loại `.generated/audio/`, artifact chỉ tồn tại trên máy local |
 | QA phát âm TTS | Chưa làm; 38 card đồng tự khác âm có rủi ro đọc sai |
-| CI pipeline | **Chưa có.** Repo không có `.github/`, trong khi D-16/D-18 coi test/CI là merge gate |
+| CI pipeline | Có workflow `vocabulary-content`: validate nguồn, build/validate catalog canonical và chạy test. GitHub admin còn phải mark check này required trong branch protection. |
 | Consent/age gate (D-05) | Chưa có; cần trước khi bắn analytics |
 
 ## 2. Nguyên tắc triển khai
@@ -61,14 +61,14 @@ Phát hành luồng `/vocabulary` cho phép người học xem deck theo topic, 
 
 ### M0.5 — Nền tảng kỹ thuật
 
-Repo hiện chưa có `.github/`, nên mọi task nói "CI" ở dưới đều không có chỗ chạy. D-16 (tests là merge gate) và D-18 (CI gate production) yêu cầu phần này tồn tại trước M1.
+Workflow `.github/workflows/vocabulary-content.yml` đã chạy validator/canonical gate/test trên pull request Vocabulary. D-16/D-18 vẫn cần GitHub branch protection mark check `vocabulary-content` là required trước M1.
 
 | ID | Task | Dependency | Definition of done |
 |---|---|---|---|
-| VOC-INFRA-01 | Dựng CI tối thiểu | VOC-PLAN-01 | GitHub Actions chạy `npm run vocab:validate-content` trên mọi PR; job đỏ chặn merge. |
-| VOC-INFRA-02 | Mở rộng validator | VOC-INFRA-01 | `validate-content.mjs` assert đúng 5.275 card / 7.309 `def_vi` (không chỉ in ra), và fail khi `zh` lọt vào payload learner-facing. |
+| VOC-INFRA-01 | Dựng CI tối thiểu | VOC-PLAN-01 | **Implemented:** GitHub Actions chạy `npm run vocab:validate-content`, build/validate catalog canonical và contract tests trên mọi PR Vocabulary. Admin phải mark `vocabulary-content` required để job đỏ chặn merge. |
+| VOC-INFRA-02 | Mở rộng validator | VOC-INFRA-01 | **Implemented:** `validate-content.mjs` assert đúng 23 file / 5.275 card / 7.309 `def_vi`, fail khi `zh`/Youdao lọt vào payload learner-facing. |
 | VOC-INFRA-03 | Backup artifact audio | VOC-PLAN-04 | 10.550 MP3 + `manifest.json` được backup ra storage bền **trước** khi upload Supabase; ghi lại vị trí và cách khôi phục. |
-| VOC-INFRA-04 | Refresh token khi sinh audio | VOC-INFRA-03 | `generate-audio.mjs` lấy lại access token theo chu kỳ thay vì một lần; job dài hơn 1 giờ không chết vì token hết hạn. |
+| VOC-INFRA-04 | Refresh token khi sinh audio | VOC-INFRA-03 | **Implemented:** `generate-audio.mjs` refresh trước expiry window và retry một HTTP 401 với token mới; giữ checkpoint/resume contract. |
 | VOC-INFRA-05 | Design states | VOC-PLAN-01 | Design giao đủ states DoR spec §14: chưa lật, loading, audio error, save error, empty due, completed, offline-disabled. |
 
 ### M1 — Content platform và database
@@ -90,7 +90,7 @@ Repo hiện chưa có `.github/`, nên mọi task nói "CI" ở dưới đều k
 | VOC-API-01 | Identity resolver guest/user | VOC-DATA-02 | Anonymous sign-in cấp UUID ngay lần vào đầu; request có learner identity an toàn; guest không thấy data guest khác; đăng nhập sau giữ nguyên UUID nên không cần bước migrate. |
 | VOC-API-02 | Deck catalog endpoint | VOC-DATA-07 | Trả deck name, count publishable, due count, learner progress; không trả cả corpus. |
 | VOC-API-03 | Review queue endpoint | VOC-API-01, VOC-DATA-07 | `due` xếp overdue -> due -> learning; `new` theo CEFR/order; limit server-side. |
-| VOC-API-04 | SRS domain function | VOC-API-01 | Implement đúng bảng 8.1 (stage 0–6, interval 10m/1d/3d/7d/14d/30d/60d) và toàn bộ 16 ô bảng 8.2 spec, gồm việc đạt stage 6 đổi state sang `mastered`; UTC và timezone display. Pure function, không chạm DB. |
+| VOC-API-04 | SRS domain function | VOC-API-01 | **Implemented early:** pure function đúng bảng 8.1 (stage 0–6, interval 10m/1d/3d/7d/14d/30d/60d) và 16 ô bảng 8.2; stage 6 đổi `mastered`, due time UTC. Không chạm DB. |
 | VOC-API-05 | Submit review endpoint | VOC-API-03, VOC-API-04 | Một request transactionally tạo event + update state; idempotent; trả next due/state. |
 | VOC-API-06 | Session/progress endpoint | VOC-API-05 | Tổng reviewed/learning/mastered, per-deck progress, completed session summary. |
 | VOC-API-07 | Audio provider boundary | VOC-PLAN-04 | Endpoint/payload chỉ trả audio URL khi feature flag + source approved; audio failure không chặn review. |
@@ -112,7 +112,7 @@ Repo hiện chưa có `.github/`, nên mọi task nói "CI" ở dưới đều k
 
 | ID | Task | Dependency | Definition of done |
 |---|---|---|---|
-| VOC-QA-01 | Unit test SRS | VOC-API-04 | Cover đủ 16 ô bảng 8.2, interval bảng 8.1, UTC boundaries, repeated `Again`, chuyển stage 6 -> `mastered`, và `review` stage 1 + `Chưa thuộc` -> `learning` stage 0. |
+| VOC-QA-01 | Unit test SRS | VOC-API-04 | **Implemented:** cover đủ 16 ô bảng 8.2, interval bảng 8.1, UTC boundary, stage 6 -> `mastered`, và `review` stage 1 + `Chưa thuộc` -> `learning` stage 0. |
 | VOC-QA-02 | Integration test review write | VOC-API-05 | Verify transaction, idempotency, RLS isolation, reload persistence. |
 | VOC-QA-03 | Importer regression test | VOC-DATA-04 | Reject malformed line/duplicate ID; ensure only JSONL consumed. |
 | VOC-QA-04 | E2E core journeys | VOC-WEB-07 | Due review, new deck, no due cards, save retry, audio failure, guest refresh, thẻ `Chưa thuộc` quay lại trong phiên, và offline khóa đánh giá/không tạo review event theo ADR-002. |

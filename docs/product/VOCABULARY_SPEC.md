@@ -1,7 +1,7 @@
 # IELTS Cozy — Đặc tả chức năng Từ vựng
 
 **Phiên bản:** 0.2  
-**Trạng thái:** Đã rà soát kỹ thuật; chờ Product/Content duyệt mục 2, 5, 8 trước khi code  
+**Trạng thái:** Đã rà soát kỹ thuật; content CI/canonical gate và SRS pure domain đã code. Chờ Product/Content duyệt mục 2, 5, 8 trước database/API/UI runtime.  
 **Phạm vi:** Vocabulary MVP cho người học tự học IELTS B2C, tiếng Việt, Gen Z và Gen Alpha  
 **Thay thế chi tiết cho:** mục 6.9 trong [PRD](PRODUCT_SPEC.md)
 
