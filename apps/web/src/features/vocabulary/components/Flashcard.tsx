@@ -3,32 +3,36 @@
 /**
  * VOC-WEB-04 — flashcard front/back (spec §6.2).
  *
- * The whole card is one button so tap, click, Enter and Space all flip it with
- * no extra key handling. Cards without phonetic (the 20 `is_phrase` cards)
- * render no phonetic region at all — never empty brackets (VOC-08b).
+ * The card face is one button so tap, click, Enter and Space all flip it with
+ * no extra key handling. The audio controls sit OUTSIDE that button: nesting a
+ * button inside a button is invalid HTML, and browsers are free to hoist it,
+ * which breaks both the flip target and the audio label.
+ *
+ * Cards without phonetic (the 20 `is_phrase` cards) render no phonetic region
+ * at all — never empty brackets (VOC-08b).
  */
 
-import type { VocabularyCard } from '../types';
+import { forwardRef } from 'react';
+
+import type { VocabularyCardPayload } from '../types';
+import { AudioButton } from './AudioButton';
 import styles from './flashcard.module.css';
 
 const MAX_SENSES = 2;
 
-export function Flashcard({
-  card,
-  flipped,
-  onFlip,
-}: {
-  card: VocabularyCard;
-  flipped: boolean;
-  onFlip: () => void;
-}) {
+export const Flashcard = forwardRef<
+  HTMLButtonElement,
+  { card: VocabularyCardPayload; flipped: boolean; onFlip: () => void }
+>(function Flashcard({ card, flipped, onFlip }, ref) {
   const phonetic = card.phonetic?.uk ?? card.phonetic?.us;
   const senses = card.senses.slice(0, MAX_SENSES);
   const example = card.examples?.[0];
   const collocation = card.collocations?.[0];
 
   return (
+    <div className={styles.cardStack}>
     <button
+      ref={ref}
       type="button"
       className={`${styles.card} ${flipped ? styles.cardFlipped : ''}`}
       onClick={onFlip}
@@ -63,5 +67,7 @@ export function Flashcard({
         </>
       )}
     </button>
+      <AudioButton word={card.word} sources={card.audio} />
+    </div>
   );
-}
+});

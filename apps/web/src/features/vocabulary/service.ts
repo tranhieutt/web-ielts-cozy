@@ -6,6 +6,7 @@
  * around the data adapter.
  */
 
+import { resolveAudioSources } from './audio.ts';
 import * as repository from './repository.fixture.ts';
 import { transitionVocabularySrs } from './srs/transition.mjs';
 import type {
@@ -16,9 +17,16 @@ import type {
   Rating,
   ReviewResult,
   VocabularyCard,
+  VocabularyCardPayload,
 } from './types';
 
 const CEFR_ORDER = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
+
+/** Attach audio only when the release gate is open (ADR-003). */
+function toPayload(card: VocabularyCard): VocabularyCardPayload {
+  const audio = resolveAudioSources(card.id);
+  return audio ? { ...card, audio } : card;
+}
 
 function cefrRank(card: VocabularyCard): number {
   const index = card.cefr ? CEFR_ORDER.indexOf(card.cefr) : -1;
@@ -66,7 +74,7 @@ export function getDeckCatalog(learnerId: string): DeckSummary[] {
 export function buildReviewQueue(
   learnerId: string,
   { deck, mode, limit }: { deck: string; mode: QueueMode; limit: number },
-): VocabularyCard[] {
+): VocabularyCardPayload[] {
   const now = Date.now();
   const cards = repository.listPublishableCards(deck);
   const states = new Map(repository.getLearnerStates(learnerId).map((s) => [s.cardId, s]));
@@ -76,7 +84,8 @@ export function buildReviewQueue(
     return cards
       .filter((card) => !states.has(card.id))
       .sort((a, b) => cefrRank(a) - cefrRank(b) || a.order - b.order || a.id.localeCompare(b.id))
-      .slice(0, limit);
+      .slice(0, limit)
+      .map(toPayload);
   }
 
   // due: most overdue first, then soonest due, then learning cards.
@@ -91,7 +100,7 @@ export function buildReviewQueue(
   return due
     .sort((a, b) => a.dueAt - b.dueAt || a.card.order - b.card.order)
     .slice(0, limit)
-    .map((entry) => entry.card);
+    .map((entry) => toPayload(entry.card));
 }
 
 function initialState(learnerId: string, cardId: string): LearnerCardState {

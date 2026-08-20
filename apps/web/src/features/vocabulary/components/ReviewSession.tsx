@@ -13,7 +13,7 @@
  *    never pretends progress was stored.
  */
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import {
   createSessionQueue,
@@ -22,7 +22,7 @@ import {
   rateCurrentCard,
   remainingCount,
 } from '../srs/session-queue.mjs';
-import type { Rating, QueueMode, VocabularyCard } from '../types';
+import type { Rating, QueueMode, VocabularyCardPayload } from '../types';
 import { Flashcard } from './Flashcard';
 import { SessionSummary } from './SessionSummary';
 import styles from './flashcard.module.css';
@@ -32,7 +32,7 @@ type Queue = ReturnType<typeof createSessionQueue>;
 type Load =
   | { status: 'loading' }
   | { status: 'error'; message: string }
-  | { status: 'ready'; cards: VocabularyCard[] };
+  | { status: 'ready'; cards: VocabularyCardPayload[] };
 
 export interface SessionTally {
   rated: number;
@@ -55,6 +55,17 @@ export function ReviewSession({
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [tally, setTally] = useState<SessionTally>({ rated: 0, known: 0, again: 0 });
+  const cardRef = useRef<HTMLButtonElement>(null);
+  const focusNextCard = useRef(false);
+
+  // Both rating buttons go disabled the moment the card advances, so a keyboard
+  // learner would lose focus to <body> and have to tab in from the top again.
+  // This must run AFTER React commits the next card, not in the click handler.
+  useEffect(() => {
+    if (!focusNextCard.current) return;
+    focusNextCard.current = false;
+    cardRef.current?.focus();
+  }, [queue]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -63,7 +74,7 @@ export function ReviewSession({
     fetch(`/api/vocabulary/queue?${params}`, { signal: controller.signal })
       .then((response) => {
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
-        return response.json() as Promise<{ cards: VocabularyCard[] }>;
+        return response.json() as Promise<{ cards: VocabularyCardPayload[] }>;
       })
       .then(({ cards }) => {
         setLoad({ status: 'ready', cards });
@@ -78,7 +89,7 @@ export function ReviewSession({
   }, [deck, mode, limit]);
 
   const cardsById = useMemo(() => {
-    if (load.status !== 'ready') return new Map<string, VocabularyCard>();
+    if (load.status !== 'ready') return new Map<string, VocabularyCardPayload>();
     return new Map(load.cards.map((card) => [card.id, card]));
   }, [load]);
 
@@ -108,6 +119,7 @@ export function ReviewSession({
           again: previous.again + (rating === 'again' ? 1 : 0),
         }));
         setFlipped(false);
+        focusNextCard.current = true;
       } catch {
         setSaveError(
           navigator.onLine
@@ -170,6 +182,14 @@ export function ReviewSession({
 
   return (
     <main className={styles.session}>
+      <h1 className="sr-only">Ôn từ vựng — bộ {deck}</h1>
+
+      {/* Advancing a card is a silent visual change; announce it so a screen
+          reader learner knows which word they are on. */}
+      <p className="sr-only" role="status">
+        Thẻ {position}: {card.word}. Còn {remainingCount(queue)} thẻ.
+      </p>
+
       <div className={styles.sessionBar}>
         <span className={styles.chip}>Thẻ {position}</span>
         <span className={`${styles.chip} ${styles.chipQuiet}`}>
@@ -180,7 +200,12 @@ export function ReviewSession({
         </a>
       </div>
 
-      <Flashcard card={card} flipped={flipped} onFlip={() => setFlipped((value) => !value)} />
+      <Flashcard
+        ref={cardRef}
+        card={card}
+        flipped={flipped}
+        onFlip={() => setFlipped((value) => !value)}
+      />
 
       <div className={styles.ratings}>
         <div className={styles.ratingRow} role="group" aria-label="Tự đánh giá từ vựng">

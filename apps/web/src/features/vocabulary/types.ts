@@ -63,3 +63,12 @@ export interface LearnerProgress {
   scheduledCount: number;
   decks: DeckSummary[];
 }
+
+/**
+ * What the API actually sends for one card: the content record plus audio that
+ * survived the release gate. `audio` is absent — not null-filled — whenever the
+ * gate is closed, so the UI branches on presence rather than on a magic value.
+ */
+export interface VocabularyCardPayload extends VocabularyCard {
+  audio?: { uk: string; us: string };
+}
