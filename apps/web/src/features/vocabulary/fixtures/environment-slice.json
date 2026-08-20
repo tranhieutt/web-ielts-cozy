@@ -1,0 +1,1842 @@
+{
+  "schema_version": "vocabulary-slice-fixture.v1",
+  "generated_by": "scripts/vocabulary/build-slice-fixture.mjs",
+  "deck": {
+    "slug": "environment",
+    "display_name_vi": "Môi trường",
+    "publish_status": "published"
+  },
+  "cards": [
+    {
+      "schema_version": "vocabulary-card.v1",
+      "id": "w_3c45881163",
+      "word": "air",
+      "is_phrase": false,
+      "topic": "environment",
+      "topics_all": [
+        "environment"
+      ],
+      "order": 25,
+      "cefr": "A2",
+      "target_band": "4.5-5.0",
+      "phonetic": {
+        "uk": "eə",
+        "us": "ɛr"
+      },
+      "senses": [
+        {
+          "pos": "n",
+          "def_vi": "Hỗn hợp khí xung quanh Trái Đất mà chúng ta hít thở",
+          "def_en": "the mixture of gases around the Earth, that we breathe"
+        }
+      ],
+      "examples": [
+        {
+          "en": "Let’s go outside and get some fresh air."
+        },
+        {
+          "en": "You need to put some air in the tyres."
+        }
+      ],
+      "collocations": [
+        {
+          "en": "in the air"
+        },
+        {
+          "en": "air conditioning"
+        },
+        {
+          "en": "air pollution"
+        },
+        {
+          "en": "by air"
+        },
+        {
+          "en": "air ticket"
+        },
+        {
+          "en": "fresh air"
+        },
+        {
+          "en": "air force"
+        },
+        {
+          "en": "air conditioner"
+        },
+        {
+          "en": "air flow"
+        },
+        {
+          "en": "air temperature"
+        },
+        {
+          "en": "hot air"
+        },
+        {
+          "en": "air pressure"
+        },
+        {
+          "en": "air compressor"
+        },
+        {
+          "en": "on the air"
+        },
+        {
+          "en": "compressed air"
+        },
+        {
+          "en": "air transport"
+        },
+        {
+          "en": "air condition"
+        },
+        {
+          "en": "on air"
+        },
+        {
+          "en": "air defense"
+        },
+        {
+          "en": "air traffic"
+        }
+      ]
+    },
+    {
+      "schema_version": "vocabulary-card.v1",
+      "id": "w_a04fe4e390",
+      "word": "alternative",
+      "is_phrase": false,
+      "topic": "environment",
+      "topics_all": [
+        "environment",
+        "health",
+        "business_economy",
+        "science_research"
+      ],
+      "order": 28,
+      "cefr": "B1",
+      "target_band": "5.0-5.5",
+      "phonetic": {
+        "uk": "ɔːl'tɜːnətɪv; ɒl-",
+        "us": "ɔl'tɝnətɪv"
+      },
+      "senses": [
+        {
+          "pos": "n",
+          "def_vi": "Chọn một trong hai"
+        },
+        {
+          "pos": "adj",
+          "def_vi": "Một ý tưởng, kế hoạch thay thế khác với ý tưởng, kế hoạch hiện tại của bạn và có thể được sử dụng thay thế.",
+          "def_en": "an alternative idea, plan etc is different from the one you have and can be used instead"
+        }
+      ],
+      "examples": [
+        {
+          "en": "An alternative route is along the Via Unione."
+        }
+      ],
+      "collocations": [
+        {
+          "en": "alternative energy"
+        },
+        {
+          "en": "alternative medicine"
+        },
+        {
+          "en": "have no alternative"
+        },
+        {
+          "en": "alternative fuel"
+        },
+        {
+          "en": "alternative method"
+        },
+        {
+          "en": "alternative approach"
+        },
+        {
+          "en": "have no alternative but"
+        },
+        {
+          "en": "alternative energy sources"
+        },
+        {
+          "en": "alternative investment"
+        },
+        {
+          "en": "alternative splicing"
+        },
+        {
+          "en": "alternative solution"
+        },
+        {
+          "en": "alternative plan"
+        },
+        {
+          "en": "alternative design"
+        },
+        {
+          "en": "alternative use"
+        },
+        {
+          "en": "alternative option"
+        },
+        {
+          "en": "alternative media"
+        },
+        {
+          "en": "alternative form"
+        }
+      ]
+    },
+    {
+      "schema_version": "vocabulary-card.v1",
+      "id": "w_05e94e8cbc",
+      "word": "atmosphere",
+      "is_phrase": false,
+      "topic": "environment",
+      "topics_all": [
+        "environment"
+      ],
+      "order": 59,
+      "cefr": "B1",
+      "target_band": "5.0-5.5",
+      "phonetic": {
+        "uk": "'ætməsfɪə(r)",
+        "us": "'ætməsfɪr"
+      },
+      "senses": [
+        {
+          "pos": "n",
+          "def_vi": "Cảm giác mà một sự kiện hoặc địa điểm mang lại cho bạn",
+          "def_en": "the feeling that an event or place gives you"
+        }
+      ],
+      "examples": [
+        {
+          "en": "The hotel had a lovely relaxed atmosphere ."
+        },
+        {
+          "en": "The atmosphere at home was rather tense."
+        }
+      ],
+      "collocations": [
+        {
+          "en": "earth's atmosphere"
+        },
+        {
+          "en": "social atmosphere"
+        },
+        {
+          "en": "academic atmosphere"
+        },
+        {
+          "en": "working atmosphere"
+        },
+        {
+          "en": "upper atmosphere"
+        },
+        {
+          "en": "controlled atmosphere"
+        },
+        {
+          "en": "protective atmosphere"
+        },
+        {
+          "en": "atmosphere pressure"
+        },
+        {
+          "en": "lower atmosphere"
+        },
+        {
+          "en": "furnace atmosphere"
+        },
+        {
+          "en": "oxidizing atmosphere"
+        },
+        {
+          "en": "gas atmosphere"
+        },
+        {
+          "en": "explosive atmosphere"
+        },
+        {
+          "en": "inert atmosphere"
+        },
+        {
+          "en": "reducing atmosphere"
+        },
+        {
+          "en": "neutral atmosphere"
+        },
+        {
+          "en": "standard atmosphere"
+        },
+        {
+          "en": "tragic atmosphere"
+        }
+      ]
+    },
+    {
+      "schema_version": "vocabulary-card.v1",
+      "id": "w_9603a224b4",
+      "word": "branch",
+      "is_phrase": false,
+      "topic": "environment",
+      "topics_all": [
+        "environment",
+        "food_agriculture",
+        "technology",
+        "business_economy",
+        "government_law"
+      ],
+      "order": 91,
+      "cefr": "A2",
+      "target_band": "4.5-5.0",
+      "phonetic": {
+        "uk": "brɑːntʃ",
+        "us": "bræntʃ"
+      },
+      "senses": [
+        {
+          "pos": "n",
+          "def_vi": "Một phần của cây mọc ra từ thân cây (thân chính) và có lá, quả hoặc các cành nhỏ mọc ra từ đó.",
+          "def_en": "a part of a tree that grows out from the trunk (= main stem ) and that has leaves, fruit, or smaller branches growing from it"
+        }
+      ],
+      "examples": [
+        {
+          "en": "After the storm, the ground was littered with twigs and branches."
+        },
+        {
+          "en": "The topmost branches were full of birds."
+        }
+      ],
+      "collocations": [
+        {
+          "en": "party branch"
+        },
+        {
+          "en": "branch office"
+        },
+        {
+          "en": "branch company"
+        },
+        {
+          "en": "branch line"
+        },
+        {
+          "en": "executive branch"
+        },
+        {
+          "en": "main branch"
+        },
+        {
+          "en": "olive branch"
+        },
+        {
+          "en": "branch and bound"
+        },
+        {
+          "en": "branch out"
+        },
+        {
+          "en": "party branch secretary"
+        },
+        {
+          "en": "branch pipe"
+        },
+        {
+          "en": "branch network"
+        },
+        {
+          "en": "branch off"
+        },
+        {
+          "en": "branch manager"
+        },
+        {
+          "en": "special branch"
+        },
+        {
+          "en": "branch school"
+        },
+        {
+          "en": "branch bank"
+        },
+        {
+          "en": "branch out into"
+        },
+        {
+          "en": "bundle branch"
+        },
+        {
+          "en": "overseas branch"
+        }
+      ]
+    },
+    {
+      "schema_version": "vocabulary-card.v1",
+      "id": "w_93162408a4",
+      "word": "crisis",
+      "is_phrase": false,
+      "topic": "environment",
+      "topics_all": [
+        "environment",
+        "business_economy"
+      ],
+      "order": 188,
+      "cefr": "B1",
+      "target_band": "5.0-5.5",
+      "phonetic": {
+        "uk": "'kraɪsɪs",
+        "us": "'kraɪsɪs"
+      },
+      "senses": [
+        {
+          "pos": "n",
+          "def_vi": "Một tình huống mà có rất nhiều vấn đề cần được giải quyết nhanh chóng để tình hình không trở nên tồi tệ hơn hoặc nguy hiểm hơn.",
+          "def_en": "a situation in which there are a lot of problems that must be dealt with quickly so that the situation does not get worse or more dangerous"
+        }
+      ],
+      "examples": [
+        {
+          "en": "The country now faces an economic crisis ."
+        },
+        {
+          "en": "The Prime Minister was criticized for the way in which he handled the crisis ."
+        },
+        {
+          "en": "the current debt crisis"
+        },
+        {
+          "en": "a major political crisis"
+        },
+        {
+          "en": "I was relieved that we had averted yet another financial crisis ."
+        },
+        {
+          "en": "Oil companies were heavily criticized when they made large profits during the oil crisis of the 1970s."
+        },
+        {
+          "en": "The car industry is now in crisis ."
+        },
+        {
+          "en": "He doesn’t seem to be very good at crisis management ."
+        }
+      ],
+      "collocations": [
+        {
+          "en": "financial crisis"
+        },
+        {
+          "en": "economic crisis"
+        },
+        {
+          "en": "crisis management"
+        },
+        {
+          "en": "credit crisis"
+        },
+        {
+          "en": "energy crisis"
+        },
+        {
+          "en": "ecological crisis"
+        },
+        {
+          "en": "debt crisis"
+        },
+        {
+          "en": "environmental crisis"
+        },
+        {
+          "en": "subprime crisis"
+        },
+        {
+          "en": "crisis intervention"
+        },
+        {
+          "en": "currency crisis"
+        },
+        {
+          "en": "subprime mortgage crisis"
+        },
+        {
+          "en": "crisis of confidence"
+        },
+        {
+          "en": "humanitarian crisis"
+        },
+        {
+          "en": "identity crisis"
+        },
+        {
+          "en": "liquidity crisis"
+        },
+        {
+          "en": "monetary crisis"
+        },
+        {
+          "en": "financial crisis in asia"
+        },
+        {
+          "en": "midlife crisis"
+        },
+        {
+          "en": "fiscal crisis"
+        }
+      ]
+    },
+    {
+      "schema_version": "vocabulary-card.v1",
+      "id": "w_43b5c91759",
+      "word": "current",
+      "is_phrase": false,
+      "topic": "environment",
+      "topics_all": [
+        "environment"
+      ],
+      "order": 194,
+      "cefr": "B1",
+      "target_band": "5.0-5.5",
+      "phonetic": {
+        "uk": "'kʌr(ə)nt",
+        "us": "kɝ​ənt"
+      },
+      "senses": [
+        {
+          "pos": "adj",
+          "def_vi": "đang xảy ra hoặc tồn tại hiện nay",
+          "def_en": "happening or existing now"
+        },
+        {
+          "pos": "n",
+          "def_vi": "Sự chuyển động liên tục của nước trong sông, hồ hoặc biển.",
+          "def_en": "a continuous movement of water in a river, lake, or sea"
+        }
+      ],
+      "examples": [
+        {
+          "en": "the current President"
+        },
+        {
+          "en": "In its current state, the car is worth £1,000."
+        }
+      ],
+      "collocations": [
+        {
+          "en": "current situation"
+        },
+        {
+          "en": "current status"
+        },
+        {
+          "en": "current state"
+        },
+        {
+          "en": "electric current"
+        },
+        {
+          "en": "direct current"
+        },
+        {
+          "en": "current density"
+        },
+        {
+          "en": "eddy current"
+        },
+        {
+          "en": "alternating current (AC)"
+        },
+        {
+          "en": "current account"
+        },
+        {
+          "en": "alternating current"
+        },
+        {
+          "en": "tidal current"
+        },
+        {
+          "en": "constant current"
+        },
+        {
+          "en": "current transformer"
+        },
+        {
+          "en": "current production"
+        },
+        {
+          "en": "leakage current"
+        },
+        {
+          "en": "high current"
+        },
+        {
+          "en": "current job"
+        },
+        {
+          "en": "current control"
+        },
+        {
+          "en": "welding current"
+        }
+      ]
+    },
+    {
+      "schema_version": "vocabulary-card.v1",
+      "id": "w_e900e40bc9",
+      "word": "environment",
+      "is_phrase": false,
+      "topic": "environment",
+      "topics_all": [
+        "environment"
+      ],
+      "order": 261,
+      "cefr": "B2",
+      "target_band": "6.0-6.5",
+      "phonetic": {
+        "uk": "ɪn'vaɪrənm(ə)nt; en-",
+        "us": "ɪn'vaɪrənmənt"
+      },
+      "senses": [
+        {
+          "pos": "n",
+          "def_vi": "Không khí, nước và đất trên Trái đất đều bị ảnh hưởng bởi các hoạt động của con người.",
+          "def_en": "the air, water, and land on Earth, which is affected by man’s activities"
+        }
+      ],
+      "examples": [
+        {
+          "en": "Some of these chemicals are very damaging to the environment."
+        },
+        {
+          "en": "legislation to protect the environment"
+        },
+        {
+          "en": "the effects of acid rain on the environment"
+        },
+        {
+          "en": "the government minister for the environment"
+        }
+      ],
+      "collocations": [
+        {
+          "en": "ecological environment"
+        },
+        {
+          "en": "environment protection"
+        },
+        {
+          "en": "natural environment"
+        },
+        {
+          "en": "living environment"
+        },
+        {
+          "en": "working environment"
+        },
+        {
+          "en": "network environment"
+        },
+        {
+          "en": "external environment"
+        },
+        {
+          "en": "social environment"
+        },
+        {
+          "en": "environment pollution"
+        },
+        {
+          "en": "development environment"
+        },
+        {
+          "en": "economic environment"
+        },
+        {
+          "en": "investment environment"
+        },
+        {
+          "en": "protect the environment"
+        },
+        {
+          "en": "work environment"
+        },
+        {
+          "en": "business environment"
+        },
+        {
+          "en": "urban environment"
+        },
+        {
+          "en": "geological environment"
+        },
+        {
+          "en": "geographical environment"
+        },
+        {
+          "en": "marine environment"
+        },
+        {
+          "en": "environment friendly"
+        }
+      ]
+    },
+    {
+      "schema_version": "vocabulary-card.v1",
+      "id": "w_3fcdb73d36",
+      "word": "form",
+      "is_phrase": false,
+      "topic": "environment",
+      "topics_all": [
+        "environment",
+        "technology",
+        "work",
+        "art_entertainment"
+      ],
+      "order": 314,
+      "cefr": "A2",
+      "target_band": "4.5-5.0",
+      "phonetic": {
+        "uk": "fɔːm",
+        "us": "fɔrm"
+      },
+      "senses": [
+        {
+          "pos": "v",
+          "def_vi": "Bắt đầu tồn tại, hoặc làm cho một thứ gì đó bắt đầu tồn tại, đặc biệt là do kết quả của một quá trình tự nhiên.",
+          "def_en": "to start to exist, or make something start to exist, especially as the result of a natural process"
+        },
+        {
+          "pos": "n",
+          "def_vi": "cách thức mà một thứ gì đó tồn tại hoặc có vẻ như tồn tại",
+          "def_en": "the way something is or appears to be"
+        }
+      ],
+      "examples": [
+        {
+          "en": "The rocks were formed more than 4,000 million years ago."
+        },
+        {
+          "en": "By midnight ice was already forming on the roads."
+        },
+        {
+          "en": "Sulphur dioxide and nitrogen oxide combine to form acid rain."
+        }
+      ],
+      "collocations": [
+        {
+          "en": "in the form of"
+        },
+        {
+          "en": "form a"
+        },
+        {
+          "en": "in form"
+        },
+        {
+          "en": "a form of"
+        },
+        {
+          "en": "application form"
+        },
+        {
+          "en": "form a complete set"
+        },
+        {
+          "en": "common form"
+        },
+        {
+          "en": "good form"
+        },
+        {
+          "en": "take the form of"
+        },
+        {
+          "en": "on form"
+        },
+        {
+          "en": "art form"
+        },
+        {
+          "en": "registration form"
+        },
+        {
+          "en": "order form"
+        },
+        {
+          "en": "basic form"
+        },
+        {
+          "en": "special form"
+        },
+        {
+          "en": "written form"
+        },
+        {
+          "en": "artistic form"
+        },
+        {
+          "en": "report form"
+        },
+        {
+          "en": "form of address"
+        },
+        {
+          "en": "fill in the form"
+        }
+      ]
+    },
+    {
+      "schema_version": "vocabulary-card.v1",
+      "id": "w_7c4e4db5ec",
+      "word": "fuel",
+      "is_phrase": false,
+      "topic": "environment",
+      "topics_all": [
+        "environment"
+      ],
+      "order": 319,
+      "cefr": "B1",
+      "target_band": "5.0-5.5",
+      "phonetic": {
+        "uk": "fjʊəl",
+        "us": "'fjuəl"
+      },
+      "senses": [
+        {
+          "pos": "n",
+          "def_vi": "Một chất như than đá, khí đốt hoặc dầu mỏ có thể được đốt cháy để tạo ra nhiệt hoặc năng lượng.",
+          "def_en": "a substance such as coal, gas, or oil that can be burned to produce heat or energy"
+        },
+        {
+          "pos": "v",
+          "def_vi": "Nếu bạn đổ nhiên liệu cho xe, hoặc nếu xe được đổ nhiên liệu, thì nhiên liệu được đưa vào xe.",
+          "def_en": "if you fuel a vehicle, or if it fuels up, fuel is put into it"
+        }
+      ],
+      "examples": [
+        {
+          "en": "Coal is one of the cheapest fuels."
+        },
+        {
+          "en": "We’d better fuel up at the next town."
+        },
+        {
+          "en": "The van was fuelled and waiting in the basement car park."
+        }
+      ],
+      "collocations": [
+        {
+          "en": "fuel cell"
+        },
+        {
+          "en": "fuel consumption"
+        },
+        {
+          "en": "fuel oil"
+        },
+        {
+          "en": "fuel injection"
+        },
+        {
+          "en": "fuel economy"
+        },
+        {
+          "en": "diesel fuel"
+        },
+        {
+          "en": "fuel gas"
+        },
+        {
+          "en": "fuel tank"
+        },
+        {
+          "en": "fossil fuel"
+        },
+        {
+          "en": "nuclear fuel"
+        },
+        {
+          "en": "fuel pump"
+        },
+        {
+          "en": "fuel supply"
+        },
+        {
+          "en": "fuel injection system"
+        },
+        {
+          "en": "liquid fuel"
+        },
+        {
+          "en": "fuel efficiency"
+        },
+        {
+          "en": "jet fuel"
+        },
+        {
+          "en": "fuel system"
+        },
+        {
+          "en": "solid fuel"
+        },
+        {
+          "en": "fuel surcharge"
+        },
+        {
+          "en": "alternative fuel"
+        }
+      ]
+    },
+    {
+      "schema_version": "vocabulary-card.v1",
+      "id": "w_9c70933aff",
+      "word": "global",
+      "is_phrase": false,
+      "topic": "environment",
+      "topics_all": [
+        "environment"
+      ],
+      "order": 327,
+      "cefr": "B1",
+      "target_band": "5.0-5.5",
+      "phonetic": {
+        "uk": "'gləʊb(ə)l",
+        "us": "'ɡlobl"
+      },
+      "senses": [
+        {
+          "pos": "n",
+          "def_vi": "Toàn cầu; toàn diện"
+        },
+        {
+          "pos": "adj",
+          "def_vi": "ảnh hưởng hoặc bao gồm toàn thế giới",
+          "def_en": "affecting or including the whole world"
+        }
+      ],
+      "examples": [
+        {
+          "en": "global climate change"
+        },
+        {
+          "en": "the global economy"
+        }
+      ],
+      "collocations": [
+        {
+          "en": "global economy"
+        },
+        {
+          "en": "global warming"
+        },
+        {
+          "en": "global market"
+        },
+        {
+          "en": "global climate"
+        },
+        {
+          "en": "global optimization"
+        },
+        {
+          "en": "global network"
+        },
+        {
+          "en": "global environment"
+        },
+        {
+          "en": "global change"
+        },
+        {
+          "en": "global positioning system"
+        },
+        {
+          "en": "global village"
+        },
+        {
+          "en": "global optimum"
+        },
+        {
+          "en": "global stability"
+        },
+        {
+          "en": "global strategy"
+        },
+        {
+          "en": "global value"
+        },
+        {
+          "en": "global marketing"
+        },
+        {
+          "en": "global community"
+        },
+        {
+          "en": "global system"
+        },
+        {
+          "en": "global sourcing"
+        },
+        {
+          "en": "global view"
+        },
+        {
+          "en": "global reach"
+        }
+      ]
+    },
+    {
+      "schema_version": "vocabulary-card.v1",
+      "id": "w_a88f05b6c9",
+      "word": "hide",
+      "is_phrase": false,
+      "topic": "environment",
+      "topics_all": [
+        "environment"
+      ],
+      "order": 345,
+      "cefr": "A1",
+      "target_band": "4.0-4.5",
+      "phonetic": {
+        "uk": "haɪd",
+        "us": "haɪd"
+      },
+      "senses": [
+        {
+          "pos": "v",
+          "def_vi": "Cố ý đặt hoặc giữ một vật gì đó hoặc một người nào đó ở một nơi khó nhìn thấy hoặc tìm thấy.",
+          "def_en": "to deliberately put or keep something or someone in a place where they cannot easily be seen or found"
+        },
+        {
+          "pos": "n",
+          "def_vi": "một nơi mà bạn có thể quan sát động vật hoặc chim mà không bị chúng nhìn thấy.",
+          "def_en": "a place from which you can watch animals or birds without being seen by them"
+        }
+      ],
+      "examples": [
+        {
+          "en": "She keeps a bottle of gin hidden behind a stack of books."
+        }
+      ],
+      "collocations": [
+        {
+          "en": "hide from"
+        },
+        {
+          "en": "hide and seek"
+        },
+        {
+          "en": "cattle hide"
+        },
+        {
+          "en": "hide all"
+        },
+        {
+          "en": "hide away"
+        },
+        {
+          "en": "raw hide"
+        },
+        {
+          "en": "hide out"
+        }
+      ]
+    },
+    {
+      "schema_version": "vocabulary-card.v1",
+      "id": "w_33c0478b99",
+      "word": "improve",
+      "is_phrase": false,
+      "topic": "environment",
+      "topics_all": [
+        "environment",
+        "work",
+        "business_economy"
+      ],
+      "order": 365,
+      "cefr": "A2",
+      "target_band": "4.5-5.0",
+      "phonetic": {
+        "uk": "ɪm'pruːv",
+        "us": "ɪm'pruv"
+      },
+      "senses": [
+        {
+          "pos": "v",
+          "def_vi": "Để làm cho mọi thứ tốt hơn, hoặc để trở nên tốt hơn",
+          "def_en": "to make something better, or to become better"
+        }
+      ],
+      "examples": [
+        {
+          "en": "a course for students wishing to improve their English"
+        },
+        {
+          "en": "The doctors say she is improving (= after being ill )."
+        },
+        {
+          "en": "You could use the money for improving your home."
+        },
+        {
+          "en": "Many wines improve with age (= get better as they get older )."
+        }
+      ],
+      "collocations": [
+        {
+          "en": "improve efficiency"
+        },
+        {
+          "en": "improve on"
+        },
+        {
+          "en": "improve in"
+        },
+        {
+          "en": "to improve the environment"
+        },
+        {
+          "en": "improve upon"
+        },
+        {
+          "en": "improve the comprehensive quality"
+        },
+        {
+          "en": "improve the investment climate"
+        }
+      ]
+    },
+    {
+      "schema_version": "vocabulary-card.v1",
+      "id": "w_421f70d8b0",
+      "word": "improvement",
+      "is_phrase": false,
+      "topic": "environment",
+      "topics_all": [
+        "environment",
+        "business_economy",
+        "government_law",
+        "art_entertainment",
+        "urban_housing"
+      ],
+      "order": 366,
+      "cefr": "B1",
+      "target_band": "5.0-5.5",
+      "phonetic": {
+        "uk": "ɪm'pruːvmənt",
+        "us": "ɪm'prʊvmənt"
+      },
+      "senses": [
+        {
+          "pos": "n",
+          "def_vi": "Hành động cải thiện một चीज hoặc trạng thái được cải thiện",
+          "def_en": "the act of improving something or the state of being improved"
+        }
+      ],
+      "examples": [
+        {
+          "en": "Our results have shown some improvement this month."
+        }
+      ],
+      "collocations": [
+        {
+          "en": "improvement in"
+        },
+        {
+          "en": "continuous improvement"
+        },
+        {
+          "en": "quality improvement"
+        },
+        {
+          "en": "room for improvement"
+        },
+        {
+          "en": "continual improvement"
+        },
+        {
+          "en": "home improvement"
+        },
+        {
+          "en": "environmental improvement"
+        },
+        {
+          "en": "soil improvement"
+        },
+        {
+          "en": "product improvement"
+        },
+        {
+          "en": "improvement trade"
+        },
+        {
+          "en": "improvement works"
+        },
+        {
+          "en": "self improvement"
+        },
+        {
+          "en": "pareto improvement"
+        },
+        {
+          "en": "improvement area"
+        },
+        {
+          "en": "value improvement"
+        },
+        {
+          "en": "land improvement"
+        }
+      ]
+    },
+    {
+      "schema_version": "vocabulary-card.v1",
+      "id": "w_fad58de736",
+      "word": "main",
+      "is_phrase": false,
+      "topic": "environment",
+      "topics_all": [
+        "environment",
+        "business_economy",
+        "society_culture",
+        "work"
+      ],
+      "order": 420,
+      "cefr": "B1",
+      "target_band": "5.0-5.5",
+      "phonetic": {
+        "uk": "meɪn"
+      },
+      "senses": [
+        {
+          "pos": "n",
+          "def_vi": "một đường ống hoặc dây dẫn lớn dùng để cung cấp nước, điện hoặc khí đốt cho công chúng.",
+          "def_en": "a large pipe or wire carrying the public supply of water, electricity, or gas"
+        }
+      ],
+      "examples": [
+        {
+          "en": "The report found that many of Yorkshire’s water mains needed replacing."
+        },
+        {
+          "en": "a burst gas main"
+        }
+      ],
+      "collocations": [
+        {
+          "en": "main products"
+        },
+        {
+          "en": "main body"
+        },
+        {
+          "en": "main reason"
+        },
+        {
+          "en": "main content"
+        },
+        {
+          "en": "main effect"
+        },
+        {
+          "en": "main task"
+        },
+        {
+          "en": "in the main"
+        },
+        {
+          "en": "main purpose"
+        },
+        {
+          "en": "main part"
+        },
+        {
+          "en": "main idea"
+        },
+        {
+          "en": "main feature"
+        },
+        {
+          "en": "main force"
+        },
+        {
+          "en": "main line"
+        },
+        {
+          "en": "main material"
+        },
+        {
+          "en": "main point"
+        },
+        {
+          "en": "main structure"
+        },
+        {
+          "en": "main street"
+        },
+        {
+          "en": "main character"
+        },
+        {
+          "en": "main shaft"
+        },
+        {
+          "en": "main circuit"
+        }
+      ]
+    },
+    {
+      "schema_version": "vocabulary-card.v1",
+      "id": "w_8f4ef05b54",
+      "word": "natural",
+      "is_phrase": false,
+      "topic": "environment",
+      "topics_all": [
+        "environment"
+      ],
+      "order": 454,
+      "cefr": "A2",
+      "target_band": "4.5-5.0",
+      "phonetic": {
+        "uk": "'nætʃrəl",
+        "us": "'nætʃrəl"
+      },
+      "senses": [
+        {
+          "pos": "adj",
+          "def_vi": "Tồn tại trong tự nhiên và không do con người gây ra, tạo ra hoặc kiểm soát.",
+          "def_en": "existing in nature and not caused, made, or controlled by people"
+        }
+      ],
+      "examples": [
+        {
+          "en": "the study of the natural world"
+        },
+        {
+          "en": "an area of spectacular natural beauty"
+        },
+        {
+          "en": "death from natural causes"
+        },
+        {
+          "en": "the need for natural light in offices"
+        }
+      ],
+      "collocations": [
+        {
+          "en": "natural gas"
+        },
+        {
+          "en": "natural environment"
+        },
+        {
+          "en": "natural science"
+        },
+        {
+          "en": "natural disaster"
+        },
+        {
+          "en": "natural resource"
+        },
+        {
+          "en": "natural language"
+        },
+        {
+          "en": "natural frequency"
+        },
+        {
+          "en": "natural condition"
+        },
+        {
+          "en": "natural landscape"
+        },
+        {
+          "en": "natural beauty"
+        },
+        {
+          "en": "natural selection"
+        },
+        {
+          "en": "natural scenery"
+        },
+        {
+          "en": "natural rubber"
+        },
+        {
+          "en": "natural monopoly"
+        },
+        {
+          "en": "natural history"
+        },
+        {
+          "en": "natural world"
+        },
+        {
+          "en": "natural law"
+        },
+        {
+          "en": "natural ventilation"
+        },
+        {
+          "en": "natural water"
+        },
+        {
+          "en": "natural forest"
+        }
+      ]
+    },
+    {
+      "schema_version": "vocabulary-card.v1",
+      "id": "w_3dc183cf4b",
+      "word": "nuclear",
+      "is_phrase": false,
+      "topic": "environment",
+      "topics_all": [
+        "environment"
+      ],
+      "order": 461,
+      "cefr": "B1",
+      "target_band": "5.0-5.5",
+      "phonetic": {
+        "uk": "'njuːklɪə(r)",
+        "us": "'nuklɪɚ"
+      },
+      "senses": [
+        {
+          "pos": "adj",
+          "def_vi": "Liên quan đến hoặc bao gồm hạt nhân (= phần trung tâm) của nguyên tử, hoặc năng lượng được tạo ra khi hạt nhân của một nguyên tử bị tách ra hoặc kết hợp với hạt nhân của một nguyên tử khác.",
+          "def_en": "relating to or involving the nucleus (= central part ) of an atom, or the energy produced when the nucleus of an atom is either split or joined with the nucleus of another atom"
+        }
+      ],
+      "examples": [
+        {
+          "en": "France’s reliance on nuclear energy"
+        },
+        {
+          "en": "a nuclear power station"
+        },
+        {
+          "en": "a nuclear-powered submarine"
+        }
+      ],
+      "collocations": [
+        {
+          "en": "nuclear power"
+        },
+        {
+          "en": "nuclear power plant"
+        },
+        {
+          "en": "nuclear energy"
+        },
+        {
+          "en": "nuclear magnetic resonance"
+        },
+        {
+          "en": "nuclear power station"
+        },
+        {
+          "en": "nuclear test"
+        },
+        {
+          "en": "nuclear reactor"
+        },
+        {
+          "en": "nuclear weapon"
+        },
+        {
+          "en": "nuclear fuel"
+        },
+        {
+          "en": "nuclear medicine"
+        },
+        {
+          "en": "nuclear war"
+        },
+        {
+          "en": "nuclear waste"
+        },
+        {
+          "en": "nuclear disarmament"
+        },
+        {
+          "en": "nuclear physics"
+        },
+        {
+          "en": "nuclear bomb"
+        },
+        {
+          "en": "nuclear transfer"
+        },
+        {
+          "en": "nuclear fusion"
+        },
+        {
+          "en": "nuclear explosion"
+        },
+        {
+          "en": "nuclear fission"
+        },
+        {
+          "en": "nuclear radiation"
+        }
+      ]
+    },
+    {
+      "schema_version": "vocabulary-card.v1",
+      "id": "w_7c49b153d4",
+      "word": "origin",
+      "is_phrase": false,
+      "topic": "environment",
+      "topics_all": [
+        "environment"
+      ],
+      "order": 483,
+      "cefr": "B1",
+      "target_band": "5.0-5.5",
+      "phonetic": {
+        "uk": "'ɒrɪdʒɪn",
+        "us": "'ɔrɪdʒɪn"
+      },
+      "senses": [
+        {
+          "pos": "n",
+          "def_vi": "nơi chốn hoặc hoàn cảnh mà trong đó một thứ gì đó bắt đầu tồn tại.",
+          "def_en": "the place or situation in which something begins to exist"
+        }
+      ],
+      "examples": [
+        {
+          "en": "The tradition has its origins in the Middle Ages."
+        },
+        {
+          "en": "old folk tales of unknown origin"
+        }
+      ],
+      "collocations": [
+        {
+          "en": "country of origin"
+        },
+        {
+          "en": "certificate of origin"
+        },
+        {
+          "en": "place of origin"
+        },
+        {
+          "en": "origin of life"
+        },
+        {
+          "en": "point of origin"
+        },
+        {
+          "en": "plant origin"
+        },
+        {
+          "en": "ethnic origin"
+        },
+        {
+          "en": "animal origin"
+        },
+        {
+          "en": "fever of unknown origin"
+        },
+        {
+          "en": "marine origin"
+        },
+        {
+          "en": "data origin"
+        },
+        {
+          "en": "humble origin"
+        },
+        {
+          "en": "noise origin"
+        }
+      ]
+    },
+    {
+      "schema_version": "vocabulary-card.v1",
+      "id": "w_96ab4e163f",
+      "word": "resource",
+      "is_phrase": false,
+      "topic": "environment",
+      "topics_all": [
+        "environment",
+        "urban_housing"
+      ],
+      "order": 574,
+      "cefr": "B1",
+      "target_band": "5.0-5.5",
+      "phonetic": {
+        "uk": "rɪ'sɔːs; rɪ'zɔːs",
+        "us": "'risɔrs"
+      },
+      "senses": [
+        {
+          "pos": "n",
+          "def_vi": "Những thứ như đất đai hữu ích, hoặc khoáng sản như dầu mỏ hay than đá, tồn tại trong một quốc gia và có thể được sử dụng để gia tăng sự giàu có của quốc gia đó.",
+          "def_en": "something such as useful land, or minerals such as oil or coal, that exists in a country and can be used to increase its wealth"
+        },
+        {
+          "pos": "v",
+          "def_vi": "Cung cấp tiền hoặc các nguồn lực khác cho một việc gì đó",
+          "def_en": "to provide money or other resources for something"
+        }
+      ],
+      "examples": [
+        {
+          "en": "Canada’s vast mineral resources"
+        },
+        {
+          "en": "a country rich in natural resources"
+        }
+      ],
+      "collocations": [
+        {
+          "en": "human resource"
+        },
+        {
+          "en": "resource management"
+        },
+        {
+          "en": "water resource"
+        },
+        {
+          "en": "human resource management"
+        },
+        {
+          "en": "resource allocation"
+        },
+        {
+          "en": "natural resource"
+        },
+        {
+          "en": "land resource"
+        },
+        {
+          "en": "resource sharing"
+        },
+        {
+          "en": "resource utilization"
+        },
+        {
+          "en": "energy resource"
+        },
+        {
+          "en": "resource conservation"
+        },
+        {
+          "en": "tourism resource"
+        },
+        {
+          "en": "resource protection"
+        },
+        {
+          "en": "enterprise resource planning"
+        },
+        {
+          "en": "financial resource"
+        },
+        {
+          "en": "economic resource"
+        },
+        {
+          "en": "renewable resource"
+        },
+        {
+          "en": "inner resources"
+        },
+        {
+          "en": "information resource management"
+        },
+        {
+          "en": "power resource"
+        }
+      ]
+    },
+    {
+      "schema_version": "vocabulary-card.v1",
+      "id": "w_e709e56a8a",
+      "word": "severe",
+      "is_phrase": false,
+      "topic": "environment",
+      "topics_all": [
+        "environment",
+        "health"
+      ],
+      "order": 607,
+      "cefr": "B1",
+      "target_band": "5.0-5.5",
+      "phonetic": {
+        "uk": "sɪ'vɪə",
+        "us": "sɪ'vɪr"
+      },
+      "senses": [
+        {
+          "pos": "adj",
+          "def_vi": "các vấn đề nghiêm trọng, thương tích, bệnh tật, v.v. rất tồi tệ hoặc rất nghiêm trọng",
+          "def_en": "severe problems, injuries, illnesses etc are very bad or very serious"
+        }
+      ],
+      "examples": [
+        {
+          "en": "His injuries were quite severe."
+        },
+        {
+          "en": "She’s suffering from severe depression."
+        },
+        {
+          "en": "The US faces severe economic problems."
+        },
+        {
+          "en": "The storm caused severe damage."
+        }
+      ],
+      "collocations": [
+        {
+          "en": "severe test"
+        },
+        {
+          "en": "severe acute respiratory syndrome"
+        },
+        {
+          "en": "severe punishment"
+        },
+        {
+          "en": "severe cold"
+        },
+        {
+          "en": "severe weather"
+        },
+        {
+          "en": "severe winter"
+        },
+        {
+          "en": "severe pain"
+        },
+        {
+          "en": "severe environment"
+        },
+        {
+          "en": "severe stress"
+        },
+        {
+          "en": "severe condition"
+        },
+        {
+          "en": "severe storm"
+        },
+        {
+          "en": "severe strain"
+        },
+        {
+          "en": "severe frost"
+        },
+        {
+          "en": "severe discipline"
+        }
+      ]
+    },
+    {
+      "schema_version": "vocabulary-card.v1",
+      "id": "w_cf6c9df68d",
+      "word": "soil",
+      "is_phrase": false,
+      "topic": "environment",
+      "topics_all": [
+        "environment"
+      ],
+      "order": 619,
+      "cefr": "B2",
+      "target_band": "6.0-6.5",
+      "phonetic": {
+        "uk": "sɒɪl",
+        "us": "sɔɪl"
+      },
+      "senses": [
+        {
+          "pos": "v",
+          "def_vi": "Làm cho thứ gì đó bị bẩn, đặc biệt là bằng chất thải từ cơ thể bạn.",
+          "def_en": "to make something dirty, especially with waste from your body"
+        },
+        {
+          "pos": "n",
+          "def_vi": "lớp đất mặt, nơi thực vật sinh trưởng.",
+          "def_en": "the top layer of the earth in which plants grow"
+        }
+      ],
+      "examples": [
+        {
+          "en": "She moistenend the soil round the plant."
+        }
+      ],
+      "collocations": [
+        {
+          "en": "soil erosion"
+        },
+        {
+          "en": "soft soil"
+        },
+        {
+          "en": "soil water"
+        },
+        {
+          "en": "soil moisture"
+        },
+        {
+          "en": "soil fertility"
+        },
+        {
+          "en": "soil conservation"
+        },
+        {
+          "en": "water and soil conservation"
+        },
+        {
+          "en": "soil layer"
+        },
+        {
+          "en": "frozen soil"
+        },
+        {
+          "en": "soil pollution"
+        },
+        {
+          "en": "fertile soil"
+        },
+        {
+          "en": "red soil"
+        },
+        {
+          "en": "soil nutrient"
+        },
+        {
+          "en": "soil mechanics"
+        },
+        {
+          "en": "sandy soil"
+        },
+        {
+          "en": "foundation soil"
+        },
+        {
+          "en": "surface soil"
+        },
+        {
+          "en": "expansive soil"
+        },
+        {
+          "en": "soil pressure"
+        },
+        {
+          "en": "soil structure"
+        }
+      ]
+    }
+  ]
+}

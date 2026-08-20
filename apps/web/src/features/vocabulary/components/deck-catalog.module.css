@@ -1,0 +1,198 @@
+/* Deck catalog (spec §6.1). Visual contract follows index.html — pill chips,
+   16px-radius cards, quiet 6px progress bars, one blue primary action. */
+
+.page {
+  max-width: var(--layout-content-max);
+  margin: 0 auto;
+  padding: var(--layout-page-inline-mobile);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.title {
+  margin: 0;
+  font-size: var(--font-size-display);
+  line-height: var(--font-line-height-display);
+  font-weight: var(--font-weight-medium);
+  letter-spacing: var(--font-letter-spacing-heading);
+}
+
+.dueLine {
+  margin: var(--space-2) 0 0;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-body-small);
+  line-height: var(--font-line-height-body-small);
+}
+
+.primaryAction {
+  min-height: 44px;
+  padding: var(--space-3) var(--space-6);
+  border: none;
+  border-radius: var(--radius-pill);
+  background: var(--color-action-primary);
+  color: var(--color-action-primary-text);
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-eyebrow);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--font-letter-spacing-label);
+  text-transform: uppercase;
+  text-decoration: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  transition: background var(--motion-default) var(--motion-easing-standard);
+}
+
+.primaryAction:hover {
+  background: var(--color-action-primary-hover);
+}
+
+.primaryAction[aria-disabled='true'] {
+  background: var(--color-background-subtle);
+  color: var(--color-text-secondary);
+  cursor: not-allowed;
+}
+
+.stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-round);
+  background: var(--color-background-subtle);
+  font-size: var(--font-size-label);
+  font-weight: var(--font-weight-semibold);
+  white-space: nowrap;
+}
+
+.chipQuiet {
+  background: transparent;
+  border: var(--border-width-default) solid var(--color-border-subtle);
+  color: var(--color-text-secondary);
+  font-weight: var(--font-weight-regular);
+}
+
+.filter {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 44px;
+  font-size: var(--font-size-body-small);
+}
+
+.sectionTitle {
+  margin: 0;
+  font-size: var(--font-size-subtitle);
+  font-weight: var(--font-weight-semibold);
+}
+
+.deckGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-3);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+@media (min-width: 768px) {
+  .page {
+    padding: var(--layout-page-inline-desktop);
+  }
+  .deckGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .deckGrid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.deckCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-5);
+  border: var(--border-width-default) solid var(--color-border-subtle);
+  border-radius: var(--radius-card);
+  background: var(--color-background-surface);
+}
+
+.deckName {
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-semibold);
+}
+
+.deckMeta {
+  font-size: var(--font-size-label);
+  color: var(--color-text-secondary);
+}
+
+.progressTrack {
+  height: 6px;
+  border-radius: var(--radius-round);
+  background: var(--color-background-subtle);
+  overflow: hidden;
+}
+
+.progressValue {
+  height: 100%;
+  background: var(--color-action-primary);
+}
+
+.deckActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+}
+
+.deckLink {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  padding: var(--space-2) var(--space-4);
+  border: var(--border-width-default) solid var(--color-border-strong);
+  border-radius: var(--radius-pill);
+  background: var(--color-action-secondary);
+  color: var(--color-action-secondary-text);
+  font-size: var(--font-size-label);
+  font-weight: var(--font-weight-semibold);
+  text-decoration: none;
+}
+
+.deckLinkInactive {
+  border-color: var(--color-border-subtle);
+  color: var(--color-text-secondary);
+  font-weight: var(--font-weight-regular);
+}
+
+.notice {
+  padding: var(--space-6);
+  border: var(--border-width-default) solid var(--color-border-subtle);
+  border-radius: var(--radius-card);
+  background: var(--color-background-vocabulary);
+}
+
+.error {
+  background: var(--color-feedback-error-surface);
+}

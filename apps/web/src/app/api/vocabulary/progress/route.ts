@@ -1,0 +1,13 @@
+// VOC-API-06 — learner totals + per-deck progress for the dashboard and the
+// end-of-session summary. Per-session counters (reviewed/known in THIS session)
+// belong to the session runner, not here.
+import { NextResponse, type NextRequest } from 'next/server';
+
+import { attachLearnerCookie, resolveLearnerId } from '@/features/vocabulary/identity';
+import { getLearnerProgress } from '@/features/vocabulary/service';
+
+export async function GET(request: NextRequest) {
+  const { learnerId } = resolveLearnerId(request);
+  const response = NextResponse.json(getLearnerProgress(learnerId));
+  return attachLearnerCookie(response, learnerId);
+}

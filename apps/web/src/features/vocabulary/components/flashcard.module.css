@@ -1,0 +1,185 @@
+/* Flashcard (spec §6.2). Visual contract from index.html: one large card,
+   lemon front / rose back, tap to flip, two distinct rating actions. */
+
+.session {
+  max-width: var(--layout-content-max);
+  margin: 0 auto;
+  padding: var(--layout-page-inline-mobile);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-6);
+}
+
+@media (min-width: 768px) {
+  .session {
+    padding: var(--layout-page-inline-desktop);
+  }
+}
+
+.sessionBar {
+  width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-round);
+  background: var(--color-background-subtle);
+  font-size: var(--font-size-label);
+  font-weight: var(--font-weight-semibold);
+  white-space: nowrap;
+}
+
+.chipQuiet {
+  background: transparent;
+  border: var(--border-width-default) solid var(--color-border-subtle);
+  color: var(--color-text-secondary);
+  font-weight: var(--font-weight-regular);
+}
+
+.exit {
+  margin-left: auto;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-pill);
+  color: var(--color-text-link);
+  font-size: var(--font-size-label);
+  font-weight: var(--font-weight-semibold);
+  text-decoration: none;
+}
+
+.card {
+  width: 100%;
+  max-width: 620px;
+  min-height: 280px;
+  padding: var(--space-10);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-4);
+  text-align: center;
+  cursor: pointer;
+  border: var(--border-width-default) solid var(--color-border-subtle);
+  border-radius: var(--radius-card);
+  background: var(--color-background-vocabulary);
+  color: var(--color-text-primary);
+  box-shadow: var(--shadow-card);
+  font-family: inherit;
+  transition: background var(--motion-default) var(--motion-easing-standard);
+}
+
+.cardFlipped {
+  border-color: var(--color-border-strong);
+  background: var(--color-background-review);
+}
+
+.side {
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-eyebrow);
+  letter-spacing: var(--font-letter-spacing-label);
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+}
+
+.word {
+  font-size: var(--font-size-display);
+  line-height: var(--font-line-height-display);
+  font-weight: var(--font-weight-medium);
+  text-wrap: balance;
+}
+
+.phonetic {
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-body-small);
+  color: var(--color-text-secondary);
+}
+
+.meaning {
+  font-size: var(--font-size-body);
+  line-height: var(--font-line-height-body-large);
+  max-width: 36ch;
+}
+
+.meaningEn {
+  font-size: var(--font-size-body-small);
+  line-height: var(--font-line-height-body-small);
+  color: var(--color-text-secondary);
+  max-width: 40ch;
+}
+
+.example {
+  font-size: var(--font-size-body-small);
+  line-height: var(--font-line-height-body-small);
+  color: var(--color-text-secondary);
+  max-width: 40ch;
+}
+
+.hint {
+  font-size: var(--font-size-label);
+  color: var(--color-text-secondary);
+}
+
+.ratings {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.ratingRow {
+  display: flex;
+  gap: var(--space-3);
+}
+
+.rating {
+  min-height: 44px;
+  padding: var(--space-3) var(--space-4);
+  border: var(--border-width-default) solid transparent;
+  border-radius: var(--radius-pill);
+  font-size: var(--font-size-body-small);
+  font-weight: var(--font-weight-bold);
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.ratingAgain {
+  background: var(--color-background-subtle);
+  color: var(--color-text-primary);
+}
+
+.ratingKnown {
+  background: var(--color-action-primary);
+  color: var(--color-action-primary-text);
+}
+
+/* Disabled state carries meaning in text too (the hint below), never in
+   opacity alone — DESIGN.md §6. */
+.rating:disabled {
+  cursor: not-allowed;
+  background: var(--color-background-canvas);
+  color: var(--color-text-secondary);
+  border-color: var(--color-border-subtle);
+}
+
+.notice {
+  width: 100%;
+  max-width: 620px;
+  padding: var(--space-6);
+  border: var(--border-width-default) solid var(--color-border-subtle);
+  border-radius: var(--radius-card);
+  background: var(--color-background-vocabulary);
+}
+
+.error {
+  background: var(--color-feedback-error-surface);
+}

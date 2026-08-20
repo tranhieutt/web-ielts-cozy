@@ -95,7 +95,7 @@ function normalizeReviewedAt(reviewedAt) {
  * @param {{ state: 'new'|'learning'|'review'|'mastered', stage?: number|null }} current
  * @param {'again'|'known'} rating
  * @param {Date|string|number} reviewedAt
- * @returns {{ state: string, stage: number, dueAt: string, intervalMinutes: number }}
+ * @returns {{ state: 'learning'|'review'|'mastered', stage: number, dueAt: string, intervalMinutes: number }}
  */
 export function transitionVocabularySrs(current, rating, reviewedAt) {
   if (!current || typeof current !== 'object') {

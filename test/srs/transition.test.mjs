@@ -5,7 +5,7 @@ import {
   SRS_RATINGS,
   STAGE_INTERVAL_MINUTES,
   transitionVocabularySrs,
-} from '../../src/features/vocabulary/srs/transition.mjs';
+} from '../../apps/web/src/features/vocabulary/srs/transition.mjs';
 
 const REVIEWED_AT = '2026-08-20T23:55:00.000Z';
 

@@ -21,6 +21,8 @@ MVP ưu tiên thói quen học hàng ngày và dữ liệu tiến độ đáng t
 | Tỷ lệ quay lại ôn từ trong 7 ngày | Theo dõi baseline trước, chưa đặt quota |
 | Lỗi mất tiến độ sau thao tác đánh giá | 0 lỗi đã xác nhận |
 
+Một phiên tính là **hoàn tất** khi hàng đợi trong phiên không còn thẻ chưa chấm (`completion_reason = queue_exhausted`). Thoát giữa chừng (`user_exit`) hoặc lỗi không phục hồi (`error`) không tính là hoàn tất, kể cả khi đã chấm nhiều thẻ. Đây là ba giá trị hợp lệ duy nhất của `completion_reason`.
+
 ## 2. Phạm vi và quyết định sản phẩm
 
 ### Trong MVP
@@ -120,7 +122,8 @@ Mỗi dòng JSONL là một `VocabularyCard` gốc. Parser phải đọc UTF-8, 
 - Một từ có đúng một deck chính theo `topic`/tên file nguồn.
 - Một từ có thể có nhiều `topics_all`, nhưng không được tạo nhiều trạng thái ôn. `learner_card_state` khóa bằng `learner_id + card_id`, không khóa bằng deck.
 - Nếu cùng `id` xuất hiện hai lần ở lần ingest sau: chặn publish; không tự chọn bản ghi thắng.
-- Số thẻ hiển thị trong deck là số bản ghi hợp lệ, publishable của deck đó; không hard-code theo mockup.
+- **Publishable** = card có `content_status = 'published'` **và** deck chứa nó có `publish_status = 'published'`. Card published nằm trong deck draft không được đếm, không lên catalog và không được nạp vào bất kỳ hàng đợi nào.
+- Số thẻ hiển thị trong deck là số bản ghi publishable theo định nghĩa trên; không hard-code theo mockup.
 
 ## 5. Chính sách ngôn ngữ và chất lượng nội dung
 
@@ -256,6 +259,7 @@ Không có quy tắc này thì thẻ +10 phút không bao giờ quay lại trong
 - `mastered` nghĩa là đã trả lời đúng ở stage 6; không phải số lần từng nhìn thấy thẻ.
 - Tất cả mốc thời gian lưu UTC; UI hiển thị theo timezone của người học.
 - Một click chỉ tạo một review event. Request retry cần idempotency key để không nhảy hai stage.
+- Request trùng `idempotency_key` phải trả **lại kết quả của lần ghi đầu tiên** (cùng `state`, `stage`, `due_at`) với mã thành công, không trả conflict/lỗi. Nếu không, client retry sau khi mất mạng sẽ hiển thị sai trạng thái thẻ.
 - Lần chèn lại trong phiên vẫn tạo review event riêng; stage đi theo bảng 8.2 như mọi lần chấm khác.
 
 ## 9. Data model mục tiêu
@@ -309,13 +313,15 @@ Theo D-05 (hỗ trợ người học vị thành niên), analytics là consent-g
 
 | Event | Thuộc tính tối thiểu |
 |---|---|
+Mọi event đều mang `session_id` (định danh phiên, không map ngược được về tài khoản) ngoài các thuộc tính liệt kê dưới đây.
+
 | `vocabulary_opened` | source, due_count |
 | `vocabulary_deck_opened` | deck_slug, published_card_count |
 | `vocabulary_review_started` | mode, deck_slug, queue_size |
-| `vocabulary_card_flipped` | session_id, card_id, position |
+| `vocabulary_card_flipped` | card_id, position |
 | `vocabulary_audio_played` | accent, success |
-| `vocabulary_review_rated` | rating, previous_state, next_state, interval_days |
-| `vocabulary_review_completed` | reviewed_count, duration_seconds, completion_reason |
+| `vocabulary_review_rated` | rating, previous_state, next_state, next_stage, interval_minutes |
+| `vocabulary_review_completed` | reviewed_count, duration_seconds, completion_reason (`queue_exhausted`/`user_exit`/`error`) |
 | `vocabulary_sync_failed` | operation, recoverable |
 
 ## 12. Rủi ro và việc cần chốt trước implementation

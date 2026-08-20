@@ -4,11 +4,12 @@
   "private": true,
   "description": "IELTS Cozy — B2C self-study product foundation.",
   "engines": {
-    "node": ">=20.0.0"
+    "node": ">=22.18.0"
   },
   "scripts": {
     "build": "node scripts/verify-static-runtime.mjs",
     "vercel-build": "npm run build",
+    "test": "node --test \"test/**/*.test.mjs\"",
     "vocab:translate-definitions": "node scripts/vocabulary/translate-definitions.mjs",
     "vocab:generate-audio": "node scripts/vocabulary/generate-audio.mjs",
     "vocab:import-catalog": "node scripts/vocabulary/import-catalog-to-supabase.mjs",
@@ -16,6 +17,14 @@
     "vocab:upload-audio": "node scripts/vocabulary/upload-audio-to-supabase.mjs",
     "vocab:validate-content": "node scripts/vocabulary/validate-content.mjs",
     "vocab:normalize-content": "node scripts/vocabulary/normalize-content.mjs",
-    "vocab:test-normalize": "node --test test/vocabulary/normalize-content.test.mjs"
-  }
+    "vocab:test-normalize": "node --test test/vocabulary/normalize-content.test.mjs",
+    "web:dev": "npm run dev --workspace apps/web",
+    "web:build": "npm run build --workspace apps/web",
+    "vocab:build-slice-fixture": "node scripts/vocabulary/build-slice-fixture.mjs",
+    "design:build-tokens": "node scripts/design/build-token-css.mjs"
+  },
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ]
 }
