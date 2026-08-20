@@ -10,7 +10,7 @@ export async function GET(request: NextRequest) {
 
   try {
     const params = parseQueueRequest(request.nextUrl.searchParams);
-    const cards = buildReviewQueue(learnerId, params);
+    const cards = await buildReviewQueue(learnerId, params);
     const response = NextResponse.json({ mode: params.mode, deck: params.deck, cards });
     return attachLearnerCookie(response, learnerId);
   } catch (error) {

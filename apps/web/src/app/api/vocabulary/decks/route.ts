@@ -6,6 +6,6 @@ import { getDeckCatalog } from '@/features/vocabulary/service';
 
 export async function GET(request: NextRequest) {
   const { learnerId } = resolveLearnerId(request);
-  const response = NextResponse.json({ decks: getDeckCatalog(learnerId) });
+  const response = NextResponse.json({ decks: await getDeckCatalog(learnerId) });
   return attachLearnerCookie(response, learnerId);
 }
