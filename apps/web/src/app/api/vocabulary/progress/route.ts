@@ -3,11 +3,13 @@
 // belong to the session runner, not here.
 import { NextResponse, type NextRequest } from 'next/server';
 
-import { attachLearnerCookie, resolveLearnerId } from '@/features/vocabulary/identity';
+import { withLearner } from '@/features/vocabulary/route-helpers';
 import { getLearnerProgress } from '@/features/vocabulary/service';
 
 export async function GET(request: NextRequest) {
-  const { learnerId } = resolveLearnerId(request);
-  const response = NextResponse.json(await getLearnerProgress(learnerId));
-  return attachLearnerCookie(response, learnerId);
+  return withLearner(request, async (session) =>
+    // `signedIn` comes from the session, not the data layer: whether an account
+    // is linked is a property of the credential, not of the learner's progress.
+    NextResponse.json({ ...(await getLearnerProgress(session)), signedIn: session.signedIn }),
+  );
 }

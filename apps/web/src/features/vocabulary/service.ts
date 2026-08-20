@@ -8,7 +8,8 @@
 
 import { resolveAudioSources } from './audio.ts';
 import * as content from './content.ts';
-import * as repository from './repository.fixture.ts';
+import * as learner from './learner.ts';
+import type { LearnerContext } from './learner.ts';
 import { transitionVocabularySrs } from './srs/transition.mjs';
 import type {
   DeckSummary,
@@ -35,9 +36,18 @@ function cefrRank(card: VocabularyCard): number {
   return index === -1 ? CEFR_ORDER.length : index;
 }
 
-export async function getDeckCatalog(learnerId: string): Promise<DeckSummary[]> {
+/**
+ * `states` is accepted so a caller that already holds them does not pay for a
+ * second fetch. Against Supabase that is a full network round trip (~600ms),
+ * and VOC-QA-06 established that the number of round trips is what costs, not
+ * the queries themselves.
+ */
+export async function getDeckCatalog(
+  ctx: LearnerContext,
+  preloadedStates?: LearnerCardState[],
+): Promise<DeckSummary[]> {
   const now = Date.now();
-  const states = repository.getLearnerStates(learnerId);
+  const states = preloadedStates ?? (await learner.getLearnerStates(ctx));
   const decks = (await content.listDeckSummaries()).filter(
     (deck) => deck.publishStatus === 'published',
   );
@@ -46,10 +56,13 @@ export async function getDeckCatalog(learnerId: string): Promise<DeckSummary[]> 
   // Only the cards this learner has actually rated are fetched. Counting a
   // deck must never mean downloading it (spec §12).
   const ratedCards = await content.findCards(states.map((state) => state.cardId));
+  // De-duplicated on purpose: `topics_all` already contains `topic`, so a plain
+  // concat counts the primary deck twice and inflates every per-deck figure
+  // (VOC-03 — one card in several topics is still ONE state per learner).
   const deckOfCard = new Map(
     ratedCards.map((card) => [
       card.id,
-      [card.topic, ...card.topics_all].filter((slug) => published.has(slug)),
+      [...new Set([card.topic, ...card.topics_all])].filter((slug) => published.has(slug)),
     ]),
   );
 
@@ -90,12 +103,12 @@ export async function getDeckCatalog(learnerId: string): Promise<DeckSummary[]> 
  * to this function.
  */
 export async function buildReviewQueue(
-  learnerId: string,
+  ctx: LearnerContext,
   { deck, mode, limit }: { deck: string; mode: QueueMode; limit: number },
 ): Promise<VocabularyCardPayload[]> {
   const now = Date.now();
   const cards = await content.listPublishableCards(deck);
-  const states = new Map(repository.getLearnerStates(learnerId).map((s) => [s.cardId, s]));
+  const states = new Map((await learner.getLearnerStates(ctx)).map((s) => [s.cardId, s]));
 
   if (mode === 'new') {
     // Cards never seen, easiest CEFR first, `order` then `id` as stable tiebreak.
@@ -121,26 +134,23 @@ export async function buildReviewQueue(
     .map((entry) => toPayload(entry.card));
 }
 
-function initialState(learnerId: string, cardId: string): LearnerCardState {
-  return {
-    learnerId,
-    cardId,
-    state: 'new',
-    stage: null,
-    dueAt: null,
-    firstSeenAt: null,
-    lastReviewedAt: null,
-    reviewCount: 0,
-  };
-}
+/** One retry is enough: a second conflict on the same card means real contention. */
+const STALE_STATE_RETRIES = 1;
 
 /**
  * Submit one rating. State update and review event are one unit of work; a
  * repeated `idempotencyKey` replays the FIRST result instead of advancing a
- * second stage (spec §8.4).
+ * second stage (spec §8.4). Atomicity lives in the adapter, because only the
+ * database can provide it.
+ *
+ * The transition is computed here and the state it was computed FROM is sent
+ * with it. If another review of the same card landed in between, the adapter
+ * refuses the write and this reads and recomputes — otherwise two reviews would
+ * both write the same stage, costing the learner one step of the schedule while
+ * counting two reviews.
  */
 export async function submitReview(
-  learnerId: string,
+  ctx: LearnerContext,
   {
     cardId,
     rating,
@@ -152,40 +162,30 @@ export async function submitReview(
     throw new Error(`unknown card: ${cardId}`);
   }
 
-  const replay = repository.findReplay(learnerId, idempotencyKey);
-  if (replay !== undefined) {
-    return { ...(JSON.parse(replay) as ReviewResult), replayed: true };
+  for (let attempt = 0; ; attempt += 1) {
+    const states = await learner.getLearnerStates(ctx);
+    const current = states.find((state) => state.cardId === cardId);
+    const expected = { state: current?.state ?? 'new', stage: current?.stage ?? null };
+
+    const next = transitionVocabularySrs(
+      { state: expected.state, stage: expected.stage },
+      rating,
+      reviewedAt,
+    );
+
+    try {
+      return await learner.submitReview(ctx, {
+        cardId,
+        rating,
+        idempotencyKey,
+        reviewedAt,
+        expected,
+        next,
+      });
+    } catch (error) {
+      if (!(error instanceof learner.StaleStateError) || attempt >= STALE_STATE_RETRIES) throw error;
+    }
   }
-
-  const current = repository.getLearnerState(learnerId, cardId) ?? initialState(learnerId, cardId);
-  const next = transitionVocabularySrs(
-    { state: current.state, stage: current.stage },
-    rating,
-    reviewedAt,
-  );
-
-  const reviewedAtIso = reviewedAt.toISOString();
-  repository.putLearnerState({
-    ...current,
-    state: next.state,
-    stage: next.stage,
-    dueAt: next.dueAt,
-    firstSeenAt: current.firstSeenAt ?? reviewedAtIso,
-    lastReviewedAt: reviewedAtIso,
-    reviewCount: current.reviewCount + 1,
-  });
-
-  const result: ReviewResult = {
-    cardId,
-    state: next.state,
-    stage: next.stage,
-    dueAt: next.dueAt,
-    intervalMinutes: next.intervalMinutes,
-    replayed: false,
-  };
-  repository.recordReview(learnerId, idempotencyKey, JSON.stringify({ ...result, replayed: false }));
-
-  return result;
 }
 
 /**
@@ -194,9 +194,9 @@ export async function submitReview(
  * `reviewedCount` counts cards the learner has actually rated — never cards
  * merely seen — so it cannot be mistaken for "đã thuộc" (spec §6.1).
  */
-export async function getLearnerProgress(learnerId: string): Promise<LearnerProgress> {
+export async function getLearnerProgress(ctx: LearnerContext): Promise<LearnerProgress> {
   const now = Date.now();
-  const states = repository.getLearnerStates(learnerId);
+  const states = await learner.getLearnerStates(ctx);
 
   let learningCount = 0;
   let masteredCount = 0;
@@ -213,11 +213,14 @@ export async function getLearnerProgress(learnerId: string): Promise<LearnerProg
   }
 
   return {
+    // Overwritten by the route from the session; the data layer cannot know
+    // whether an account is linked.
+    signedIn: false,
     reviewedCount: states.length,
     learningCount,
     masteredCount,
     dueCount,
     scheduledCount,
-    decks: await getDeckCatalog(learnerId),
+    decks: await getDeckCatalog(ctx, states),
   };
 }

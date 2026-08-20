@@ -76,6 +76,19 @@ export function DeckCatalog() {
 
   return (
     <main className={styles.page}>
+      {/* ADR-004: a passive, always-present way to keep progress, and an honest
+          statement of where it currently lives. Anonymous progress is tied to
+          this browser and swept after 30 days of inactivity, so a learner who
+          is never told that can only discover it by losing work. Deliberately
+          not a modal — it must never interrupt a review. */}
+      {progress.signedIn ? null : (
+        <div className={styles.identityBar}>
+          <p className={styles.identityNote}>Tiến độ đang lưu trên trình duyệt này.</p>
+          <a className={styles.identityAction} href="/api/vocabulary/auth/google">
+            Đăng nhập để giữ tiến độ
+          </a>
+        </div>
+      )}
       <header className={styles.header}>
         <div>
           <h1 className={styles.title}>Từ vựng</h1>
