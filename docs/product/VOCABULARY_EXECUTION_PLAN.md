@@ -48,7 +48,7 @@ Phát hành luồng `/vocabulary` cho phép người học xem deck theo topic, 
 
 > **Quy ước:** dòng ~~gạch ngang~~ là task đã xong và đã verify (test/build/CI xanh, hoặc migration đã apply + pgTAP pass). Dòng thường là việc còn lại. Task xong nhưng chỉ chạy trên fixture được ghi rõ giới hạn trong cột Definition of done — không coi là đã đạt yêu cầu bền vững của MVP.
 
-Tình trạng hiện tại: **26/52 task xong**. Việc còn lại tập trung ở quyết định Product (`VOC-PLAN-02/03/05/07/08`), hạ tầng cần credential (`VOC-DATA-07a/07b`, `VOC-INFRA-03/06/07`), adapter Supabase (`VOC-API-*s`) và toàn bộ UI (`VOC-WEB-*`).
+Tình trạng hiện tại: **29/52 task xong**. Toàn bộ lát cắt dọc (app, API, UI, a11y) đã chạy trên fixture. Việc còn lại: quyết định Product (`VOC-PLAN-02/03/05/07/08`), hạ tầng cần credential hoặc quyền admin (`VOC-DATA-07a/07b`, `VOC-INFRA-03/06/07`), adapter Supabase (`VOC-API-01/02s/03s/05s`), và QA (`VOC-QA-02/04/05/06/07/08`).
 
 
 ### M0 — Quyết định release
@@ -113,7 +113,7 @@ Workflow `.github/workflows/vocabulary-content.yml` đã chạy validator/canoni
 | ~~VOC-API-05~~ | ~~Submit review endpoint (fixture)~~ | VOC-API-03, VOC-API-04 | **Implemented:** `POST /api/vocabulary/reviews`; replay `idempotencyKey` trả lại kết quả đầu tiên, không nhảy stage. **Chưa transactional và chưa bền** — cần adapter Supabase. |
 | VOC-API-05s | Review write transactional/bền | VOC-API-03, VOC-API-04 | Một request transactionally tạo event + update state; idempotent; trả next due/state. |
 | ~~VOC-API-06~~ | ~~Session/progress endpoint~~ | VOC-API-05 | **Implemented:** `GET /api/vocabulary/progress` trả reviewedCount/learning/mastered/due/scheduled + per-deck. `reviewedCount` đếm thẻ **đã chấm**, không phải đã xem (spec §6.1). Counter trong phiên thuộc session runner, không thuộc endpoint này. |
-| VOC-API-07 | Audio provider boundary | VOC-PLAN-04 | Endpoint/payload chỉ trả audio URL khi feature flag + source approved; audio failure không chặn review. |
+| ~~VOC-API-07~~ | ~~Audio provider boundary~~ | VOC-PLAN-04 | **Implemented (ADR-003):** hai cổng độc lập `VOCABULARY_AUDIO_ENABLED=true` **và** `VOCABULARY_AUDIO_BASE_URL`; mặc định off, cấu hình nửa vời không lọt URL, chỉ chấp nhận object path Google TTS `v1/{accent}/{id}.mp3`. Gate đóng thì payload **bỏ hẳn** key `audio`, không trả null. |
 
 ### M3 — Web application và UX
 
@@ -124,9 +124,9 @@ Workflow `.github/workflows/vocabulary-content.yml` đã chạy validator/canoni
 | ~~VOC-WEB-03~~ | ~~Review route/state~~ | VOC-API-03, VOC-API-04b | **Implemented:** route nhận `deck`/`mode`/`limit` (limit cap 1–50), điểm phiên không nằm trong URL. Hàng đợi trong phiên dùng `session-queue.mjs`, verify trên browser thật: thẻ `Chưa thuộc` quay lại sau đúng 3 thẻ khác (hide -> air, branch, form -> hide). | Route support `deck`, `mode`, `limit`; back/exit không làm mất review đã save. Hàng đợi trong phiên theo spec §8.3: chèn lại thẻ `Chưa thuộc` sau >= 3 thẻ, tối đa 2 lần, **không** đọc `due_at`. |
 | ~~VOC-WEB-04~~ | ~~Flashcard component~~ | VOC-WEB-03 | **Implemented:** cả thẻ là một `button` nên tap/click/Enter/Space đều lật; tối đa 2 sense, `def_en` chỉ bổ trợ, example/collocation English fallback; thiếu phonetic thì không render vùng phonetic (VOC-08b); reduced-motion xử lý ở `globals.css`. Audio để cho VOC-WEB-06. | Front/back, phonetic, sense, English example fallback, reduced-motion, keyboard flip. Card thiếu phonetic (20 card `is_phrase`) ẩn vùng phonetic, không render ngoặc rỗng. |
 | ~~VOC-WEB-05~~ | ~~Rating interaction~~ | VOC-WEB-04, VOC-API-05 | **Implemented:** hai nút disabled trước lần lật đầu; **không** optimistic — chỉ sang thẻ sau khi server xác nhận. Verify: chặn `/reviews` -> giữ nguyên thẻ, không tăng vị trí, hiện thông báo cần kết nối (ADR-002); có mạng lại thì chấm tiếp bình thường. | Nút disabled trước flip; optimistic state chỉ commit sau response; retry/error state rõ. |
-| VOC-WEB-06 | Audio interaction | VOC-WEB-04, VOC-API-07 | Không autoplay; accessible label; unavailable/error fallback. |
+| ~~VOC-WEB-06~~ | ~~Audio interaction~~ | VOC-WEB-04, VOC-API-07 | **Implemented:** không autoplay; nhãn “Nghe phát âm Anh-Anh/Anh-Mỹ của {word}”; target 44x44; gate đóng hiện “Phát âm chưa khả dụng”; lỗi phát hiện “Chưa phát được audio” và phiên ôn vẫn chạy. |
 | ~~VOC-WEB-07~~ | ~~Session completion~~ | VOC-WEB-05, VOC-API-06 | **Implemented:** đã ôn / thuộc rồi / sẽ quay lại sớm / còn đến hạn + 3 CTA Ôn tiếp, Chọn bộ khác, Về từ vựng. Không copy streak-shaming. | Summary, Ôn tiếp/Chọn bộ khác/Về từ vựng; không streak shaming. |
-| VOC-WEB-08 | Responsive/a11y polish | VOC-WEB-02 đến VOC-WEB-07 | Pass 360px, touch target >=44px, keyboard-only, focus, contrast, reduced motion. |
+| ~~VOC-WEB-08~~ | ~~Responsive/a11y polish~~ | VOC-WEB-02 đến VOC-WEB-07 | **Implemented và đo trên browser:** 360px không tràn ngang ở cả 3 màn; không control nào < 44px; mọi control có tên trợ năng; mỗi màn đúng 1 `h1`; focus ring thật `2px solid #3860be` offset 4px đúng token; 10/10 cặp màu đạt WCAG AA (thấp nhất 5.40); `prefers-reduced-motion` có rule. Thêm: `h1` sr-only + live region báo thẻ mới cho screen reader, và **focus chuyển sang thẻ kế sau khi chấm** thay vì rơi về `<body>`. |
 
 ### M4 — Analytics, test và beta
 
