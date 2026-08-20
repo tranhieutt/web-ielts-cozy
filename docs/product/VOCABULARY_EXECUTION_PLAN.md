@@ -1,7 +1,7 @@
 # IELTS Cozy — Kế hoạch thực thi Vocabulary MVP
 
 **Nguồn yêu cầu:** [Vocabulary feature spec](VOCABULARY_SPEC.md)  
-**Trạng thái:** Content CI, SRS domain, migration/RLS, importer, seed và publish 4 deck beta đã xong. Anonymous Auth thật (ADR-004/D-20), review write transactional qua RPC — **VOC-07 đạt, tiến độ sống qua restart**. Còn lại: integration/E2E test, Google OAuth (chờ 1 lần đăng nhập thật), consent, QA phát âm, backup artifact audio, branch protection.  
+**Trạng thái:** **39/52 — toàn bộ engineering đã đóng.** Content, schema/RLS, importer, seed + publish 4 deck beta, Anonymous Auth + Google linking (ADR-004/D-20), review write transactional với compare-and-swap, và integration test trên project thật đều xong. **VOC-07 đạt: tiến độ sống qua restart.** App Next đã cấu hình phục vụ cả domain nhưng **chưa deploy được** vì một lỗi nền tảng Vercel (§5). Còn lại: E2E, analytics + consent, QA nội dung/phát âm, backup audio, branch protection, runbook.  
 **Phạm vi release:** Vocabulary MVP cho người học khách và người dùng đăng nhập; không AI scoring, không Speaking, không dịch ví dụ/collocation ở release này.
 
 ## 1. Mục tiêu delivery
@@ -18,7 +18,7 @@ Phát hành luồng `/vocabulary` cho phép người học xem deck theo topic, 
 | Mockup `/vocabulary` | Có trong `index.html`; chỉ là prototype visual |
 | Database foundation | Vocabulary catalog/learner schema, indexes, grants và RLS đã migrate + pgTAP verify. Importer đã `--apply`: 5.275 card / 23 deck / 8.271 membership trên project `iixvtoaifxuqjjdbwrzh`; 4 deck beta đã `published` (1.312 card theo primary topic). Còn thiếu: auth resolver thật và đường ghi learner state vào database. |
 | Application runtime | `apps/web` (Next.js App Router) có 6 endpoint (`decks`, `queue`, `reviews`, `progress`, `auth/google`, `auth/callback`) và route `/vocabulary`. Content đọc qua `repository.supabase.ts`, learner state đọc/ghi qua `learner.supabase.ts` — **cả hai bằng access token của learner, RLS quyết định phạm vi**. **VOC-07 đạt:** tiến độ sống qua restart, verify thật. Fixture chỉ còn là đường dev khi không có token. |
-| Learner identity | **Xong và verify end-to-end.** Anonymous Auth cấp UUID thật, RLS cô lập đúng, app dùng session thật trong cookie httpOnly. Google sign-in **link vào cùng UUID** — đo trên database: chấm 5 thẻ khi còn anonymous, đăng nhập sau, tiến độ vẫn thuộc đúng user đó. Cookie unsigned cũ đã bị thay hoàn toàn. |
+| Learner identity | **Xong và verify end-to-end, có UI đi kèm.** Anonymous Auth cấp UUID thật, RLS cô lập đúng, app dùng session thật trong cookie httpOnly. Google sign-in **link vào cùng UUID** — đo trên database: chấm 5 thẻ khi còn anonymous, đăng nhập sau, tiến độ vẫn thuộc đúng user đó. Cookie unsigned cũ đã bị thay hoàn toàn. |
 | Audio source / artifact | Google TTS đã sinh và upload 10.550 MP3 UK/US; Supabase CDN delivery probe UK/US pass, chờ QA phát âm trước runtime enable |
 | Backup 10.550 MP3 | **Chưa có.** `.gitignore` loại `.generated/audio/`, artifact chỉ tồn tại trên máy local |
 | QA phát âm TTS | Chưa làm; 38 card đồng tự khác âm có rủi ro đọc sai |
@@ -61,15 +61,15 @@ Tình trạng hiện tại: **39/52 task xong**. Lát cắt dọc chạy end-to-
 | Engineering | — (hết) |
 | QA | `VOC-QA-04`, `VOC-QA-05`, `VOC-QA-07`, `VOC-QA-08` |
 
-**Đường găng** giờ thuần engineering — quyết định Product chặn nó đã gỡ (ADR-004/D-20). Chuỗi 4 task nối tiếp này quyết định DoD quan trọng nhất ("reload không mất review đã lưu"):
+**Toàn bộ M2 và M3 đã đóng — không còn task engineering nào.** Đường găng còn lại:
 
 ```text
 deploy apps/web lên Vercel  →  VOC-QA-04 (E2E trên URL thật)  →  VOC-QA-07  →  Beta
 ```
 
-**VOC-07 đã đạt**: `VOC-API-05s` xong, learner state nằm trong database và sống qua restart. Đường ghi không còn fixture.
+**Deploy đang bị chặn bởi một lỗi nền tảng Vercel, không phải code** (xem §5). Build xanh, nhưng bước deploy fail vì Preview Comments không patch được static asset immutable mà Next 16.3 bật mặc định. Gỡ bằng một biến môi trường `VERCEL_PREVIEW_FEEDBACK_ENABLED=0` ở scope Preview — việc của người có quyền trên Vercel project.
 
-`VOC-INFRA-06` đã xong: anonymous sign-in cấp UUID thật và RLS cô lập đúng trên remote, nên `VOC-API-01` không còn chờ gì ở tầng hạ tầng.
+**VOC-07 đã đạt**: learner state nằm trong database và sống qua restart; đường ghi không còn fixture.
 
 `VOC-INFRA-03` (backup 10.550 MP3) **không phụ thuộc task nào** và là rủi ro mất dữ liệu không phục hồi được — chạy ngay, song song, không chờ ai.
 
@@ -82,7 +82,7 @@ deploy apps/web lên Vercel  →  VOC-QA-04 (E2E trên URL thật)  →  VOC-QA-
 | VOC-PLAN-02 | Chốt beta deck | VOC-PLAN-01 | Publish list: Environment, Education, Technology, General Academic hoặc list thay thế; `publish_status` có owner. |
 | VOC-PLAN-03 | Audit bản dịch `def_vi` | VOC-PLAN-01 | Review 100% nghĩa nguồn Trung, sample >=10% nghĩa nguồn Anh; tạo issue cho bản dịch sai/awkward. |
 | VOC-PLAN-04 | Quyết định audio | VOC-PLAN-01 | Google TTS là nguồn approved; apply bucket migration, upload CDN và chỉ bật `audio_enabled` sau delivery probe **và** QA phát âm (VOC-PLAN-08) pass. Code phía audio (`VOC-API-07`, `VOC-WEB-06`) đã xong và **an toàn khi task này còn treo**: theo ADR-003 gate mặc định off, cấu hình nửa vời không lọt URL, gate đóng thì payload bỏ hẳn key `audio`. Task này chỉ còn là quyết định bật cờ, không chặn engineering. |
-| ~~VOC-PLAN-05~~ | ~~Chốt guest/account policy~~ | VOC-PLAN-01 | **Decided (ADR-004 / D-20):** `learner_id` = Supabase Anonymous Auth UUID theo D-12, không có `guest_id` riêng. Retention 30 ngày không hoạt động (cascade tự xóa state/review). Mời tạo tài khoản = link thụ động ở header, không modal. Catalog hiện "Tiến độ đang lưu trên trình duyệt này" khi chưa đăng nhập. Google OAuth nên `enable_manual_linking = true` (bắt buộc, nếu không đăng nhập sẽ tạo user mới và mất tiến độ). Rate limit anonymous 50/giờ/IP. |
+| ~~VOC-PLAN-05~~ | ~~Chốt guest/account policy~~ | VOC-PLAN-01 | **Decided (ADR-004 / D-20):** `learner_id` = Supabase Anonymous Auth UUID theo D-12, không có `guest_id` riêng. Retention 30 ngày không hoạt động (cascade tự xóa state/review). Mời tạo tài khoản = link thụ động ở header, không modal. Catalog hiện "Tiến độ đang lưu trên trình duyệt này" khi chưa đăng nhập. Google OAuth nên `enable_manual_linking = true` (bắt buộc, nếu không đăng nhập sẽ tạo user mới và mất tiến độ). Rate limit anonymous 50/giờ/IP. **Đã giao đủ phần UI của ADR-004** (bổ sung sau review Codex, vốn bị bỏ sót): catalog hiện link `Đăng nhập để giữ tiến độ` trỏ `/api/vocabulary/auth/google` và dòng `Tiến độ đang lưu trên trình duyệt này` khi chưa đăng nhập, theo cờ `signedIn` mới trong payload progress. Verify browser 360px/1280px: target 44px, tương phản 5.05, không tràn ngang. **Chưa làm:** job xoá anonymous user quá 30 ngày — chưa có task ID, bắt buộc trước production. |
 | ~~VOC-PLAN-06~~ | ~~Hoãn offline review queue~~ | VOC-PLAN-01 | Đã chốt theo ADR-002: không có IndexedDB queue/sync trong Vocabulary MVP; offline khóa đánh giá, giữ card hiện tại và không báo đã lưu. |
 | VOC-PLAN-07 | Chốt consent/age gate | VOC-PLAN-01 | D-05 được cụ thể hóa: ai phải consent, chặn analytics ở đâu, dữ liệu tối thiểu nào được thu. Không bắn event trước khi có quyết định này. |
 | VOC-PLAN-08 | QA phát âm TTS | VOC-PLAN-04 | Nghe kiểm 38 card đồng tự khác âm + sample >=2% corpus; lập danh sách card đọc sai cần sinh lại bằng SSML `<phoneme>`. |
@@ -145,7 +145,7 @@ Dọn dẹp: 2 anonymous user do bước verify tạo ra vẫn còn trong `auth.
 | ~~VOC-API-04~~ | ~~SRS domain function~~ | VOC-API-01 | **Implemented early:** pure function đúng bảng 8.1 (stage 0–6, interval 10m/1d/3d/7d/14d/30d/60d) và 16 ô bảng 8.2; stage 6 đổi `mastered`, due time UTC. Không chạm DB. |
 | ~~VOC-API-04b~~ | ~~Session queue domain function~~ | VOC-PLAN-01 | **Implemented early:** pure module `apps/web/src/features/vocabulary/srs/session-queue.mjs` theo spec §8.3 — chèn lại thẻ `again` sau đúng 3 thẻ chưa chấm, bỏ chèn khi tail < 3, tối đa 2 lần/thẻ/phiên, không đọc `due_at`, không chạm DB. |
 | ~~VOC-API-05~~ | ~~Submit review endpoint (fixture)~~ | VOC-API-03, VOC-API-04 | **Implemented:** `POST /api/vocabulary/reviews`; replay `idempotencyKey` trả lại kết quả đầu tiên, không nhảy stage. **Chưa transactional và chưa bền** — cần adapter Supabase. |
-| ~~VOC-API-05s~~ | ~~Review write transactional/bền~~ | ~~VOC-API-01~~, ~~VOC-DATA-07a~~, ~~VOC-API-05~~ | **Implemented and remote-verified — VOC-07 đạt.** Migration `20260820140000_create_submit_vocabulary_review.sql`: RPC `submit_vocabulary_review` viết review event + state update trong **một transaction**; hai lệnh PostgREST rời không thể là một transaction nên crash giữa chừng sẽ mất tiến độ hoặc mất audit row. `security invoker` nên RLS vẫn áp và `auth.uid()` là learner. Idempotency do **unique `(learner_id, idempotency_key)`** quyết định, không phải code ứng dụng; `unique_violation` được bắt và trả lại kết quả gốc nên hai request đua cùng key vẫn an toàn. Toán SRS **không** viết lại bằng SQL — giữ ở `transition.mjs` để luật không tồn tại ở hai ngôn ngữ rồi lệch nhau. `learner.ts` chọn adapter theo **access token của request**, không theo env flag, nên đường fixture không thể vô tình đứng trước database thật. **Verify:** chấm 3 thẻ -> **kill server -> start lại** -> progress vẫn 3, catalog vẫn 3, queue `new` không trả lại thẻ đã chấm, replay key cũ **sống qua restart** trả `replayed: true` và không nhảy stage; learner mới vẫn thấy 0. |
+| ~~VOC-API-05s~~ | ~~Review write transactional/bền~~ | ~~VOC-API-01~~, ~~VOC-DATA-07a~~, ~~VOC-API-05~~ | **Implemented and remote-verified — VOC-07 đạt.** RPC `submit_vocabulary_review` ghi review event + state update trong **một transaction**; hai lệnh PostgREST rời không thể là một transaction. `security invoker` nên RLS vẫn áp. Idempotency do **unique `(learner_id, idempotency_key)`** quyết định. Toán SRS **không** viết lại bằng SQL. **Serialization (sửa sau review Codex):** state update là **compare-and-swap** — caller khai state nó tính từ đó, `WHERE` của upsert từ chối ghi nếu state đã đổi, service đọc lại và tính lại một lần. Ba thiết kế trước đều sai và được ghi trong migration: (a) `FOR UPDATE` không khoá gì ở lần review **đầu tiên** vì chưa có hàng; (b) advisory lock phủ được nhưng serialize qua pool PostgREST và làm **kẹt pool**; (c) báo xung đột bằng SQLSTATE `40001` là tệ nhất — PostgREST coi `serialization_failure` là tạm thời nên **tự retry**, biến một lần thua race thành vòng lặp vô hạn làm cạn connection pool (log Postgres: 15 lần raise trong 10ms). Bản cuối dùng `PT409` -> HTTP 409, không retry. |
 | ~~VOC-API-06~~ | ~~Session/progress endpoint~~ | VOC-API-05 | **Implemented:** `GET /api/vocabulary/progress` trả reviewedCount/learning/mastered/due/scheduled + per-deck. `reviewedCount` đếm thẻ **đã chấm**, không phải đã xem (spec §6.1). Counter trong phiên thuộc session runner, không thuộc endpoint này. |
 | ~~VOC-API-07~~ | ~~Audio provider boundary~~ | VOC-PLAN-04 | **Implemented (ADR-003):** hai cổng độc lập `VOCABULARY_AUDIO_ENABLED=true` **và** `VOCABULARY_AUDIO_BASE_URL`; mặc định off, cấu hình nửa vời không lọt URL, chỉ chấp nhận object path Google TTS `v1/{accent}/{id}.mp3`. Gate đóng thì payload **bỏ hẳn** key `audio`, không trả null. |
 
@@ -168,7 +168,7 @@ Dọn dẹp: 2 anonymous user do bước verify tạo ra vẫn còn trong `auth.
 |---|---|---|---|
 | ~~VOC-QA-01b~~ | ~~Unit test session queue~~ | VOC-API-04b | **Implemented:** `test/srs/session-queue.test.mjs` cover VOC-06b — gap 3, tail < 3 không chèn, trần 2 lần, phiên luôn kết thúc, state immutable. |
 | ~~VOC-QA-01~~ | ~~Unit test SRS~~ | VOC-API-04 | **Implemented:** cover đủ 16 ô bảng 8.2, interval bảng 8.1, UTC boundary, stage 6 -> `mastered`, và `review` stage 1 + `Chưa thuộc` -> `learning` stage 0. |
-| ~~VOC-QA-02~~ | ~~Integration test review write~~ | ~~VOC-API-05s~~ | **Implemented — 7 test chạy trên project thật, không mock.** `test/vocabulary/review-write.integration.test.mjs`, opt-in bằng `VOCABULARY_INTEGRATION=1 npm run vocab:test-integration` để `npm test` vẫn hermetic (43 test, 0 network). Không mock có chủ đích: transaction, unique constraint và RLS là tính chất của Postgres, mock chỉ chứng minh mock đồng ý với chính nó. Cover: (1) một call ghi **cả** event lẫn state, và ghi đúng `previous_state`; (2) replay trả kết quả gốc kể cả khi retry gửi payload KHÁC — **key quyết định, không phải payload**; (3) **6 request đồng thời cùng key -> đúng 1 writer, 5 replay, 1 review row** (nhánh `unique_violation` mà replay tuần tự không bao giờ chạm tới); (4) RLS: learner B không thấy dòng của A, và **giả `learner_id` của A bị chặn 403** — credential quyết định quyền sở hữu, không phải payload; (5) card chưa publish bị từ chối thay vì tạo state ẩn; (6) publishable key một mình **không** ghi được (`auth.uid()` null); (7) state sống qua session mới (VOC-07). **Giới hạn:** anonymous user do test tạo ra không xoá được (cần service-role key, không được đưa vào tầm với của app) — rơi vào retention 30 ngày của ADR-004. Chạy trong CI cần thêm secret vào GitHub, chưa làm. |
+| ~~VOC-QA-02~~ | ~~Integration test review write~~ | ~~VOC-API-05s~~ | **Implemented — 7 test chạy trên project thật, không mock.** `test/vocabulary/review-write.integration.test.mjs`, opt-in bằng `VOCABULARY_INTEGRATION=1 npm run vocab:test-integration` để `npm test` vẫn hermetic (43 test, 0 network). Không mock có chủ đích: transaction, unique constraint và RLS là tính chất của Postgres, mock chỉ chứng minh mock đồng ý với chính nó. Cover: (1) một call ghi **cả** event lẫn state, và ghi đúng `previous_state`; (2) replay trả kết quả gốc kể cả khi retry gửi payload KHÁC — **key quyết định, không phải payload**; (3) **6 request đồng thời cùng key -> đúng 1 writer, 5 replay, 1 review row** (nhánh `unique_violation` mà replay tuần tự không bao giờ chạm tới); (4) RLS: learner B không thấy dòng của A, và **giả `learner_id` của A bị chặn 403** — credential quyết định quyền sở hữu, không phải payload; (5) card chưa publish bị từ chối thay vì tạo state ẩn; (6) publishable key một mình **không** ghi được (`auth.uid()` null); (7) **hai review khác key, cùng thẻ, đồng thời -> đúng 1 writer, 1 nhận 409** (ca do Codex chỉ ra, và là ca đã phơi ra cả ba thiết kế sai ở trên); (8) state sống qua session mới (VOC-07). Mỗi test tự tạo learner riêng — dùng chung state khiến thứ tự test quyết định kết quả, và test integration phụ thuộc thứ tự thì che đúng lỗi nó sinh ra để bắt. Suite từ 137s + treo xuống **7s**. **Giới hạn:** anonymous user do test tạo ra không xoá được (cần service-role key, không được đưa vào tầm với của app) — rơi vào retention 30 ngày của ADR-004. Chạy trong CI cần thêm secret vào GitHub, chưa làm. |
 | ~~VOC-QA-03~~ | ~~Importer regression test~~ | VOC-DATA-04 | **Implemented:** reject malformed line/duplicate ID/non-JSONL catalog, xác nhận source normalizer chỉ đọc `*.jsonl`. |
 | VOC-QA-04 | E2E core journeys | VOC-WEB-07 | Due review, new deck, no due cards, save retry, audio failure, guest refresh, thẻ `Chưa thuộc` quay lại trong phiên, và offline khóa đánh giá/không tạo review event theo ADR-002. |
 | VOC-QA-05 | Instrument analytics | VOC-WEB-02 đến VOC-WEB-07, VOC-PLAN-07 | Emit events section 11 spec; không event nào rời thiết bị trước khi có consent; không gửi `learner_id`/`auth.uid()` sang analytics bên thứ ba; không lộ word/nghĩa. |
@@ -206,13 +206,33 @@ Quan trọng: `VOC-PLAN-02` (beta deck) **đã hết vai trò blocker** — `VOC
 
 `VOC-PLAN-05` (guest/account policy) **đã chốt** ở ADR-004/D-20, nên đường găng không còn quyết định Product nào: `VOC-INFRA-06` → `VOC-API-01` → `VOC-API-05s` → `VOC-QA-02` sẵn sàng chạy liên tục. Ràng buộc bên ngoài duy nhất còn lại của chuỗi là Google OAuth credential, cần trước khi `VOC-API-01` làm tới luồng đăng nhập.
 
-### Thứ tự đề xuất cho 18 task còn lại
+### Thứ tự đề xuất cho 13 task còn lại
 
-1. `VOC-INFRA-03` — backup 10.550 MP3. Không blocker, rủi ro mất dữ liệu không phục hồi được. Chạy ngay.
-2. ~~`VOC-PLAN-05`~~ — **xong**, xem ADR-004/D-20.
-3. `VOC-INFRA-06` → `VOC-API-01` → `VOC-API-05s` → `VOC-QA-02`. Chuỗi này biến MVP từ "chạy trên fixture" thành "bền". Chuẩn bị Google OAuth credential song song, cần ở giữa `VOC-API-01`.
-4. Song song với (2)(3): `VOC-INFRA-07` (cần quyền GitHub admin), `VOC-PLAN-01/02/04` (xác nhận chính thức), `VOC-PLAN-03` + `VOC-PLAN-08` (content QA + QA phát âm), `VOC-QA-08` (runbook), `VOC-INFRA-05` (design review hoặc đóng).
-5. Cuối: `VOC-PLAN-07` → `VOC-QA-05` (analytics, không bắn event trước consent), `VOC-QA-04` (E2E), rồi `VOC-QA-07` (beta acceptance).
+Không còn task engineering nào. Ba nhóm dưới đây chạy song song được; chỉ nhóm 3 nằm trên đường găng tới beta.
+
+**1. Không phụ thuộc ai — làm bất cứ lúc nào**
+
+- `VOC-INFRA-03` — backup 10.550 MP3. Rủi ro mất dữ liệu không phục hồi được, và không chờ quyết định nào.
+- `VOC-INFRA-07` — mark 2 check là required (cần GitHub admin). Chưa làm thì D-16/D-18 chỉ tồn tại trên giấy.
+- `VOC-PLAN-01/02/04` — chỉ là tick xác nhận; code tương ứng đã xong và verify từ lâu.
+- `VOC-INFRA-05` — design review lại các state đã build, hoặc đóng task.
+- `VOC-QA-08` — rollback/backup runbook. Là **input** của `VOC-QA-07`, nên đừng để tới cuối.
+
+**2. Nội dung — dài, nên bắt đầu sớm**
+
+- `VOC-PLAN-03` audit `def_vi` và `VOC-PLAN-08` QA phát âm 38 thẻ đồng tự khác âm. Cả hai đều chặn `VOC-QA-07`, và cả hai đều là việc người làm chứ không phải máy.
+
+**3. Đường găng tới beta**
+
+```text
+gỡ chặn deploy Vercel  →  VOC-QA-04 (E2E trên URL thật)
+       ↘  VOC-PLAN-07 (consent)  →  VOC-QA-05 (analytics)
+                                          ↘  VOC-QA-07  →  Beta
+```
+
+- **Gỡ chặn deploy** — đặt `VERCEL_PREVIEW_FEEDBACK_ENABLED=0` scope Preview. Không phải việc code.
+- `VOC-QA-04` cần một URL thật; chạy trên localhost không tính là bằng chứng cho `VOC-QA-07`.
+- `VOC-PLAN-07` (consent) chặn `VOC-QA-05`, và **không được bắn analytics event nào trước khi nó chốt**.
 
 Có thể chạy song song sau M0:
 
@@ -247,7 +267,17 @@ Cấu hình:
 
 Verify local (`next start`, sau khi xoá sạch `public/` rồi build lại): 10/10 route prototype trả 200, `/vocabulary` + `/vocabulary/review` trả app Next, `/api/vocabulary/decks` 200, đường không tồn tại vẫn 404.
 
-**Chưa deploy lên Vercel.** Còn lại: set env var trên Vercel (`SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY`, `VOCABULARY_CONTENT_SOURCE=supabase`; **không** đưa service-role key), rồi làm checklist OAuth ngay dưới.
+**Chưa deploy được — chặn bởi lỗi nền tảng Vercel, không phải code.** Build trên Vercel xanh (compile, typecheck, 10/10 static page, đủ route), nhưng bước deploy fail:
+
+> `Cannot patch preview comments when immutable static file upload is enabled.`
+
+Next.js 16.3 bật immutable static assets **mặc định** và Vercel ghi rõ *"no configuration is required"* — tức không có công tắc tắt. Preview Comments cần patch HTML để chèn script, nên hai tính năng của chính Vercel xung khắc. Gợi ý "nâng lên `next@16.3.0-canary.32`" không áp dụng được: repo đang ở `16.3.1`, đã mới hơn.
+
+Gỡ bằng **một biến môi trường**, không phải bằng code: `VERCEL_PREVIEW_FEEDBACK_ENABLED=0` ở scope **Preview**. Hai đường sửa bằng code đều bị loại — không tắt được immutable assets, và hạ Next xuống 16.2 là lùi version thật để né bug nền tảng.
+
+Lưu ý mức độ chặn: Preview Comments **chỉ áp dụng cho preview**, nên production nhiều khả năng deploy được. Nghĩa là lỗi này chặn *khả năng kiểm chứng trước khi merge*, chứ không chặn production — nhưng đây đúng là lần đầu app thay mockup trên domain thật, tức lúc cần preview nhất.
+
+Env var còn phải set trên Vercel: `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY`, `VOCABULARY_CONTENT_SOURCE=supabase`. **Không** đưa service-role key. Rồi làm checklist OAuth ngay dưới.
 
 ### Checklist deploy `apps/web` lần đầu (VOC-API-01 / OAuth)
 
