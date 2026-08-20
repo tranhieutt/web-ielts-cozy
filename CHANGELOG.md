@@ -8,6 +8,7 @@ Mọi thay đổi đáng chú ý của IELTS Cozy được ghi trong file này.
 
 ### Added
 
+- `vocabulary_deck_summary` view returning the deck catalog and its publishable card counts in one request, declared `security_invoker` so Row Level Security still governs what each caller sees.
 - Real Vocabulary catalog in Supabase: 5,275 cards, 23 decks and 8,271 memberships imported, with the four beta decks (Environment, Education, Technology, General Academic) published as 1,312 cards.
 - Supabase content adapter reading through PostgREST with the publishable key so Row Level Security decides what a learner can see; `VOCABULARY_CONTENT_SOURCE` selects it, and the checked-in fixture still backs tests and offline work.
 - Keyboard and screen-reader support for the review session: focus moves to the next card after a rating instead of dropping to the document body, a live region announces the new card, and each screen carries a single heading.
@@ -35,6 +36,7 @@ Mọi thay đổi đáng chú ý của IELTS Cozy được ghi trong file này.
 
 ### Changed
 
+- The deck catalog no longer downloads every card to count them. Measured against the real project, the database answers a count in ~2ms while a round trip costs ~600ms, so the catalog was rebuilt around one request instead of one per deck; learner progress now fetches only the cards a learner has actually rated.
 - The dashboard's primary call to action now targets a deck chosen from the data (first deck with due cards, else the largest) instead of a hard-coded slug, which only surfaced once more than one deck existed.
 - Vocabulary screens verified in-browser at 360px and desktop: no horizontal overflow, no control under 44px, every control named, focus ring rendered from tokens, and all ten text/background pairs at or above WCAG AA.
 - Vocabulary CI now runs every test (SRS schedule, session queue, importer, service), typechecks and builds `apps/web`, triggers on push to `main`, and watches `apps/**` and `test/**`; runner moved to Node 24 and `engines.node` to `>=22.18.0` for TypeScript type stripping.

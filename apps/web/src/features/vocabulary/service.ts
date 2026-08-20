@@ -37,38 +37,50 @@ function cefrRank(card: VocabularyCard): number {
 
 export async function getDeckCatalog(learnerId: string): Promise<DeckSummary[]> {
   const now = Date.now();
-  const states = new Map(repository.getLearnerStates(learnerId).map((s) => [s.cardId, s]));
-  const decks = await content.listDecks();
+  const states = repository.getLearnerStates(learnerId);
+  const decks = (await content.listDeckSummaries()).filter(
+    (deck) => deck.publishStatus === 'published',
+  );
+  const published = new Set(decks.map((deck) => deck.slug));
+
+  // Only the cards this learner has actually rated are fetched. Counting a
+  // deck must never mean downloading it (spec §12).
+  const ratedCards = await content.findCards(states.map((state) => state.cardId));
+  const deckOfCard = new Map(
+    ratedCards.map((card) => [
+      card.id,
+      [card.topic, ...card.topics_all].filter((slug) => published.has(slug)),
+    ]),
+  );
+
+  const perDeck = new Map<string, { due: number; learning: number; mastered: number }>();
+  for (const state of states) {
+    for (const slug of deckOfCard.get(state.cardId) ?? []) {
+      const bucket = perDeck.get(slug) ?? { due: 0, learning: 0, mastered: 0 };
+      if (state.state === 'mastered') bucket.mastered += 1;
+      else if (state.state !== 'new') bucket.learning += 1;
+      if (state.dueAt !== null && Date.parse(state.dueAt) <= now) bucket.due += 1;
+      perDeck.set(slug, bucket);
+    }
+  }
 
   return Promise.all(
-    decks
-      .filter((deck) => deck.publish_status === 'published')
-      .map(async (deck) => {
-    const cards = await content.listPublishableCards(deck.slug);
-    let dueCount = 0;
-    let learningCount = 0;
-    let masteredCount = 0;
+    decks.map(async (deck) => {
+      const publishableCardCount = deck.publishableCardCount;
+      const bucket = perDeck.get(deck.slug) ?? { due: 0, learning: 0, mastered: 0 };
 
-    for (const card of cards) {
-      const state = states.get(card.id);
-      if (!state) continue;
-      if (state.state === 'mastered') masteredCount += 1;
-      else if (state.state !== 'new') learningCount += 1;
-      if (state.dueAt !== null && Date.parse(state.dueAt) <= now) dueCount += 1;
-    }
-
-    return {
-      slug: deck.slug,
-      displayNameVi: deck.display_name_vi,
-      publishableCardCount: cards.length,
-      dueCount,
-      progress: {
-        newCount: cards.length - (learningCount + masteredCount),
-        learningCount,
-        masteredCount,
-      },
-    };
-      }),
+      return {
+        slug: deck.slug,
+        displayNameVi: deck.displayNameVi,
+        publishableCardCount,
+        dueCount: bucket.due,
+        progress: {
+          newCount: publishableCardCount - (bucket.learning + bucket.mastered),
+          learningCount: bucket.learning,
+          masteredCount: bucket.mastered,
+        },
+      };
+    }),
   );
 }
 
