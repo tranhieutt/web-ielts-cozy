@@ -8,6 +8,8 @@ Mọi thay đổi đáng chú ý của IELTS Cozy được ghi trong file này.
 
 ### Added
 
+- Real Vocabulary catalog in Supabase: 5,275 cards, 23 decks and 8,271 memberships imported, with the four beta decks (Environment, Education, Technology, General Academic) published as 1,312 cards.
+- Supabase content adapter reading through PostgREST with the publishable key so Row Level Security decides what a learner can see; `VOCABULARY_CONTENT_SOURCE` selects it, and the checked-in fixture still backs tests and offline work.
 - Keyboard and screen-reader support for the review session: focus moves to the next card after a rating instead of dropping to the document body, a live region announces the new card, and each screen carries a single heading.
 - Vocabulary audio release gate (ADR-003): audio is served only when `VOCABULARY_AUDIO_ENABLED=true` and an approved `VOCABULARY_AUDIO_BASE_URL` are both set, defaults to off, and a closed gate omits the field instead of emitting URLs that fail.
 - Pronunciation controls on the flashcard: no autoplay, per-accent accessible names, 44px targets, an explicit unavailable state while the gate is closed, and a playback error that never interrupts the review.
@@ -33,6 +35,7 @@ Mọi thay đổi đáng chú ý của IELTS Cozy được ghi trong file này.
 
 ### Changed
 
+- The dashboard's primary call to action now targets a deck chosen from the data (first deck with due cards, else the largest) instead of a hard-coded slug, which only surfaced once more than one deck existed.
 - Vocabulary screens verified in-browser at 360px and desktop: no horizontal overflow, no control under 44px, every control named, focus ring rendered from tokens, and all ten text/background pairs at or above WCAG AA.
 - Vocabulary CI now runs every test (SRS schedule, session queue, importer, service), typechecks and builds `apps/web`, triggers on push to `main`, and watches `apps/**` and `test/**`; runner moved to Node 24 and `engines.node` to `>=22.18.0` for TypeScript type stripping.
 - Vocabulary domain modules moved from `src/` to `apps/web/src/features/vocabulary/`, matching the documented feature-module contract.
@@ -49,6 +52,8 @@ Mọi thay đổi đáng chú ý của IELTS Cozy được ghi trong file này.
 
 ### Security
 
+- The web app's environment carries the publishable key only; the service-role key stays with the local import scripts and never reaches the app runtime.
+- Cards are published by primary topic, so a card whose own deck has not passed translation audit cannot appear through a secondary membership in a published deck.
 - Audio delivery cannot be switched on by a data edit: the release gate is deploy-time configuration, so mis-pronounced heteronyms cannot reach learners before pronunciation QA (`VOC-PLAN-08`) passes.
 - Vertical-slice learner identity is an unsigned first-party cookie and learner state lives in process memory: it proves nothing about the caller, does not survive a restart, and must not be pointed at real learners. Supabase Anonymous Auth (D-12) and the database adapter replace both.
 - Slice API payloads are asserted free of Chinese source fields and Youdao audio URLs on the real fixture content (VOC-08).

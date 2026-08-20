@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
 
   try {
     const parsed = parseReviewRequest(body);
-    const result = submitReview(learnerId, parsed);
+    const result = await submitReview(learnerId, parsed);
     const response = NextResponse.json(result);
     return attachLearnerCookie(response, learnerId);
   } catch (error) {

@@ -70,6 +70,9 @@ export function DeckCatalog() {
 
   const { progress } = state;
   const hasDue = progress.dueCount > 0;
+  const ctaDeck =
+    progress.decks.find((deck) => deck.dueCount > 0)?.slug ??
+    [...progress.decks].sort((a, b) => b.publishableCardCount - a.publishableCardCount)[0]?.slug;
 
   return (
     <main className={styles.page}>
@@ -83,17 +86,17 @@ export function DeckCatalog() {
           </p>
         </div>
         {/* Spec §6.1: with nothing due, the CTA switches to learning new words
-            rather than sending the learner into an empty session. */}
-        <a
-          className={styles.primaryAction}
-          href={
-            hasDue
-              ? '/vocabulary/review?deck=environment&mode=due'
-              : '/vocabulary/review?deck=environment&mode=new'
-          }
-        >
-          {hasDue ? 'Ôn ngay' : 'Học từ mới'}
-        </a>
+            rather than sending the learner into an empty session. The target
+            deck is chosen from the data — the first deck that actually has due
+            cards, else the largest deck — never a hard-coded slug. */}
+        {ctaDeck ? (
+          <a
+            className={styles.primaryAction}
+            href={`/vocabulary/review?deck=${ctaDeck}&mode=${hasDue ? 'due' : 'new'}`}
+          >
+            {hasDue ? 'Ôn ngay' : 'Học từ mới'}
+          </a>
+        ) : null}
       </header>
 
       <ul className={styles.stats} aria-label="Tiến độ của bạn">

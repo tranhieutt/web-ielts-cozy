@@ -7,6 +7,7 @@
  */
 
 import { resolveAudioSources } from './audio.ts';
+import * as content from './content.ts';
 import * as repository from './repository.fixture.ts';
 import { transitionVocabularySrs } from './srs/transition.mjs';
 import type {
@@ -34,12 +35,16 @@ function cefrRank(card: VocabularyCard): number {
   return index === -1 ? CEFR_ORDER.length : index;
 }
 
-export function getDeckCatalog(learnerId: string): DeckSummary[] {
+export async function getDeckCatalog(learnerId: string): Promise<DeckSummary[]> {
   const now = Date.now();
   const states = new Map(repository.getLearnerStates(learnerId).map((s) => [s.cardId, s]));
+  const decks = await content.listDecks();
 
-  return repository.listDecks().map((deck) => {
-    const cards = repository.listPublishableCards(deck.slug);
+  return Promise.all(
+    decks
+      .filter((deck) => deck.publish_status === 'published')
+      .map(async (deck) => {
+    const cards = await content.listPublishableCards(deck.slug);
     let dueCount = 0;
     let learningCount = 0;
     let masteredCount = 0;
@@ -63,7 +68,8 @@ export function getDeckCatalog(learnerId: string): DeckSummary[] {
         masteredCount,
       },
     };
-  });
+      }),
+  );
 }
 
 /**
@@ -71,12 +77,12 @@ export function getDeckCatalog(learnerId: string): DeckSummary[] {
  * session runs, ordering belongs to `session-queue.mjs` and never comes back
  * to this function.
  */
-export function buildReviewQueue(
+export async function buildReviewQueue(
   learnerId: string,
   { deck, mode, limit }: { deck: string; mode: QueueMode; limit: number },
-): VocabularyCardPayload[] {
+): Promise<VocabularyCardPayload[]> {
   const now = Date.now();
-  const cards = repository.listPublishableCards(deck);
+  const cards = await content.listPublishableCards(deck);
   const states = new Map(repository.getLearnerStates(learnerId).map((s) => [s.cardId, s]));
 
   if (mode === 'new') {
@@ -121,7 +127,7 @@ function initialState(learnerId: string, cardId: string): LearnerCardState {
  * repeated `idempotencyKey` replays the FIRST result instead of advancing a
  * second stage (spec §8.4).
  */
-export function submitReview(
+export async function submitReview(
   learnerId: string,
   {
     cardId,
@@ -129,8 +135,8 @@ export function submitReview(
     idempotencyKey,
     reviewedAt = new Date(),
   }: { cardId: string; rating: Rating; idempotencyKey: string; reviewedAt?: Date },
-): ReviewResult {
-  if (!repository.findCard(cardId)) {
+): Promise<ReviewResult> {
+  if (!(await content.findCard(cardId))) {
     throw new Error(`unknown card: ${cardId}`);
   }
 
@@ -176,7 +182,7 @@ export function submitReview(
  * `reviewedCount` counts cards the learner has actually rated — never cards
  * merely seen — so it cannot be mistaken for "đã thuộc" (spec §6.1).
  */
-export function getLearnerProgress(learnerId: string): LearnerProgress {
+export async function getLearnerProgress(learnerId: string): Promise<LearnerProgress> {
   const now = Date.now();
   const states = repository.getLearnerStates(learnerId);
 
@@ -200,6 +206,6 @@ export function getLearnerProgress(learnerId: string): LearnerProgress {
     masteredCount,
     dueCount,
     scheduledCount,
-    decks: getDeckCatalog(learnerId),
+    decks: await getDeckCatalog(learnerId),
   };
 }

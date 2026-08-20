@@ -8,6 +8,6 @@ import { getLearnerProgress } from '@/features/vocabulary/service';
 
 export async function GET(request: NextRequest) {
   const { learnerId } = resolveLearnerId(request);
-  const response = NextResponse.json(getLearnerProgress(learnerId));
+  const response = NextResponse.json(await getLearnerProgress(learnerId));
   return attachLearnerCookie(response, learnerId);
 }
