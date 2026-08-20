@@ -1,5 +1,7 @@
 import { fileURLToPath } from 'node:url';
 
+import { PROTOTYPE_ROUTES } from '../../scripts/app-routes.mjs';
+
 /**
  * Routes still served by the design-canvas prototype (`public/prototype.html`).
  *
@@ -8,24 +10,12 @@ import { fileURLToPath } from 'node:url';
  * bindings). Re-implementing that in React would mean porting a reactive
  * template engine to reproduce screens that exist only to be replaced. Serving
  * it as-is keeps every screen working at a fraction of the risk, and each route
- * leaves this list the day a real Next page takes it over.
+ * leaves the list the day a real Next page takes it over.
  *
- * `/vocabulary` is deliberately absent — it is a real page now, and filesystem
- * routes win over these rewrites.
+ * The list lives in `scripts/app-routes.mjs` so the rewrite here, the prototype
+ * sync, and the runtime check cannot drift apart. `/vocabulary` is deliberately
+ * absent — it is a real page now, and filesystem routes win over rewrites.
  */
-const PROTOTYPE_ROUTES = [
-  '/',
-  '/dashboard',
-  '/library',
-  '/listening',
-  '/mock',
-  '/profile',
-  '/progress',
-  '/reading',
-  '/speaking',
-  '/writing',
-];
-
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,

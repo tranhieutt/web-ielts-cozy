@@ -1,15 +1,16 @@
 ---
 name: edtech-software-development
-description: Guide a B2C EdTech product from idea through Claude Design prototype, PRD, architecture, design system, agentic repository scaffold, and initial Git setup. Use for new learning-product discovery, planning, or zero-to-foundation delivery before implementation.
+description: Guide a B2C EdTech product from idea through prototype, PRD, architecture, design system, repository setup, validated vertical-slice implementation, and beta readiness. Use for new learning-product discovery, planning, or building a learning loop with durable learner state, content operations, and release evidence.
 ---
 
 # EdTech Software Development
 
 ## Purpose
 
-Use this workflow to turn an EdTech idea into approved, traceable product foundation. Keep planning, design, architecture, repository setup, and Git separate from application implementation.
+Use this workflow to turn an EdTech idea into approved, traceable foundation, then an evidence-backed learning loop when implementation is authorized. Keep planning, design, architecture, repository setup, and implementation gates distinct.
 
 Read `references/edtech-product-playbook.md` before beginning. Use existing repository documents as source of truth when present.
+After implementation is authorized, also read `references/edtech-implementation-loop.md`.
 
 ## Operating rules
 
@@ -17,6 +18,9 @@ Read `references/edtech-product-playbook.md` before beginning. Use existing repo
 - State assumptions. Ask only questions that materially alter product direction.
 - Treat prototype as visual and interaction evidence; never treat it as production source code.
 - Do not start application implementation unless user explicitly authorizes it.
+- Treat fixture or in-memory learner state as a contract seam, never as persistence proof.
+- Prove each completed task with test, migration/RLS check, delivery probe, or reviewed artifact; prose and a green local screen alone are not proof.
+- Gate analytics, external media, and identity/account linking closed by default until their privacy, licensing, and recovery conditions pass.
 - Preserve user-owned worktree changes. Never rewrite unrelated files.
 - Keep brand, tokens, and component rules in canonical design documents; avoid duplicate sources of truth.
 - Record decisions, rejected alternatives, and rationale in ADR or decision log.
@@ -69,6 +73,38 @@ Audit worktree and remote before staging. Add `.gitignore`; initialize repositor
 
 Never expose credentials or commit local secrets. Do not force-push, reset, or overwrite remote history unless user explicitly asks.
 
+### 9. Plan and build one vertical learning slice
+
+After explicit authorization, choose smallest learner loop that exercises real boundaries: discover published content, begin activity, submit response, receive deterministic feedback, persist progress, reload, and continue.
+
+Give every task an owner, requirement ID, owned paths, API/data contract, acceptance criteria, test command, and handoff. Keep pure learning logic separately testable from route, repository, and UI adapters.
+
+Implement in dependency order: content/read model, identity, transactional learner write, UI, then observability. Preserve stable endpoint contracts while replacing a fixture adapter with real infrastructure.
+
+### 10. Build content and asset operations
+
+Treat authoring files as input, not runtime API. Validate, normalize, version, import, and publish content through an explicit draft-to-published state. Test importer idempotency, stable IDs, duplicate detection, and representative content quality.
+
+Treat generated audio and other large assets as release artifacts. Keep a safe-off runtime gate, publish only after delivery and human-quality checks, retain a restorable backup, and never expose unapproved asset URLs.
+
+### 11. Make learner state durable and isolated
+
+Use provider-issued guest/authenticated identity as learner key when progress must persist. Avoid unsigned browser identifiers in front of durable learner data. Specify retention, device-boundary disclosure, account linking, rate-limit failure UX, and deletion behavior before release.
+
+Write review event and derived progress state atomically. Require idempotency keys for retryable submissions. Add migrations with rollback notes, least-privilege grants, RLS tests for cross-learner isolation, and a verification against deployed infrastructure.
+
+### 12. Replace temporary adapters safely
+
+Migrate in stages: fixture vertical slice, production read path, then production write path. Keep the temporary adapter explicit and test-only. Do not claim MVP persistence until a review survives reload and process restart under actual authorization rules.
+
+Measure payload size and request count with realistic corpus size. Move repetitive aggregation into an RLS-safe query/view when network round trips, not database compute, dominate latency.
+
+### 13. Run beta-quality gates
+
+Run content validation, domain tests, migration/RLS tests, application build and typecheck, core E2E flow, accessibility checks at mobile and keyboard targets, and realistic performance checks. Run framework build before generated-type validation when framework output supplies types.
+
+Separate code-owned checks from admin-owned controls such as branch protection, OAuth credentials, storage backup location, and scheduled retention jobs. Record owner and evidence; never mark external controls complete from repository files alone.
+
 ## Delivery gates
 
 | Gate | Required proof | Next action |
@@ -77,9 +113,10 @@ Never expose credentials or commit local secrets. Do not force-push, reset, or o
 | Prototype | Primary flows and states inspected | PRD |
 | Build readiness | PRD, architecture, design system, decisions aligned | Repository scaffold |
 | Implementation authorization | User explicitly asks to code | Create vertical slice plan |
+| Slice viability | Published content, real identity boundary, transactional write, reload persistence | Extend learner loop |
+| Beta readiness | CI, RLS, content/asset QA, E2E, accessibility, performance, rollback/backup evidence | Beta approval |
 | Release readiness | Tests, review, migration plan, operational checks | Deploy using approved process |
 
 ## Outputs
 
-Return concise status with created/updated artifacts, decisions, assumptions, validation performed, and remaining approval needed. Link files by path where supported.
-
+Return concise status with created/updated artifacts, decision/assumption changes, completed requirement IDs, validation evidence, known temporary seams, external-owner items, and remaining approval needed. Link files by path where supported.

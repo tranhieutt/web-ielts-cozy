@@ -1,5 +1,6 @@
 import { access, readFile } from 'node:fs/promises';
 import nextConfig from '../apps/web/next.config.mjs';
+import { APP_ROUTES } from './app-routes.mjs';
 
 const files = [
   'index.html',
@@ -45,6 +46,9 @@ const prototypeRoutes = [...html.matchAll(/'(\/[a-z][a-z0-9/-]*)'/g)].map(match 
 
 for (const route of new Set(['/', ...prototypeRoutes])) {
   if (rewritten.has(route)) continue;
+  // Owned by the app: served by a real page, and the prototype's client-side
+  // router must hand the click over rather than rendering its own screen.
+  if (APP_ROUTES.some(base => route === base || route.startsWith(`${base}/`))) continue;
   // Taken over by a real page, e.g. /vocabulary.
   try {
     await access(new URL(`../apps/web/src/app${route}/page.tsx`, import.meta.url));
