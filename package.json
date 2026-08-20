@@ -12,6 +12,7 @@
     "vocab:translate-definitions": "node scripts/vocabulary/translate-definitions.mjs",
     "vocab:generate-audio": "node scripts/vocabulary/generate-audio.mjs",
     "vocab:import-catalog": "node scripts/vocabulary/import-catalog-to-supabase.mjs",
+    "vocab:import-decks": "node scripts/vocabulary/import-decks-to-supabase.mjs",
     "vocab:upload-audio": "node scripts/vocabulary/upload-audio-to-supabase.mjs",
     "vocab:validate-content": "node scripts/vocabulary/validate-content.mjs",
     "vocab:normalize-content": "node scripts/vocabulary/normalize-content.mjs",

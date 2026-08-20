@@ -1,7 +1,7 @@
 # IELTS Cozy — Kế hoạch thực thi Vocabulary MVP
 
 **Nguồn yêu cầu:** [Vocabulary feature spec](VOCABULARY_SPEC.md)  
-**Trạng thái:** Đã có nền tảng content CI và SRS pure domain; application, database và API runtime chưa bắt đầu. Product/Content vẫn cần chốt beta deck, consent và QA.  
+**Trạng thái:** Đã có content CI, SRS pure domain, migration/RLS và importer catalog/deck ở `draft`; application/API runtime, seed beta và publish chưa bắt đầu. Product/Content vẫn cần chốt beta deck, consent và QA.  
 **Phạm vi release:** Vocabulary MVP cho người học khách và người dùng đăng nhập; không AI scoring, không Speaking, không dịch ví dụ/collocation ở release này.
 
 ## 1. Mục tiêu delivery
@@ -16,7 +16,7 @@ Phát hành luồng `/vocabulary` cho phép người học xem deck theo topic, 
 | `senses[].def_vi` | Có đủ 7.309 nghĩa; cần QA nội dung song ngữ trước production |
 | `examples[].vi`, `collocations[].vi` | Chưa có; UI dùng English fallback theo spec |
 | Mockup `/vocabulary` | Có trong `index.html`; chỉ là prototype visual |
-| Database foundation | Vocabulary catalog/learner schema, indexes, grants và RLS đã migrate + pgTAP verify. Auth resolver, API và ingestion runtime chưa implement. |
+| Database foundation | Vocabulary catalog/learner schema, indexes, grants và RLS đã migrate + pgTAP verify. Catalog/deck importer idempotent đã có nhưng chưa `--apply`; Auth resolver, API và seed/publish beta chưa implement. |
 | Audio source / artifact | Google TTS đã sinh và upload 10.550 MP3 UK/US; Supabase CDN delivery probe UK/US pass, chờ QA phát âm trước runtime enable |
 | Backup 10.550 MP3 | **Chưa có.** `.gitignore` loại `.generated/audio/`, artifact chỉ tồn tại trên máy local |
 | QA phát âm TTS | Chưa làm; 38 card đồng tự khác âm có rủi ro đọc sai |
@@ -78,10 +78,16 @@ Workflow `.github/workflows/vocabulary-content.yml` đã chạy validator/canoni
 | VOC-DATA-01 | Viết schema migration content | VOC-PLAN-02 | **Implemented:** `vocabulary_cards`, `vocabulary_decks`, `vocabulary_deck_cards`; PK/FK/index và `publish_status`. Chưa seed/publish deck khi Product chưa chốt beta list. |
 | VOC-DATA-02 | Viết schema migration learner | VOC-PLAN-05 | **Implemented:** `learner_card_states`, `learner_card_reviews`; `learner_id` FK tới `auth.users`, unique `(learner_id, card_id)` và `(learner_id, idempotency_key)`. Không có `guest_identities`. |
 | VOC-DATA-03 | Bật RLS và policy | VOC-DATA-01, VOC-DATA-02 | **Implemented and remote-verified:** content read-only theo publish status; policy learner dùng `auth.uid()`, grants tối thiểu, learner chỉ đọc/ghi data của mình. |
-| VOC-DATA-04 | Xây importer JSONL | VOC-DATA-01 | Đọc **chỉ** `*.jsonl`; validate UTF-8/one-object-per-line/ID/topic; upsert idempotent; report file + line khi lỗi. |
-| VOC-DATA-05 | Normalize deck mapping | VOC-DATA-04 | `topic` là deck chính; `topics_all` không nhân bản learner state; display name Việt có mapping. |
-| VOC-DATA-06 | Content quality gate CI | VOC-DATA-04, VOC-INFRA-02 | Gate của VOC-INFRA-02 chạy trên cả output importer, không chỉ file JSONL: 5.275 card, 7.309 `def_vi` non-empty, không duplicate ID, không lộ `zh` ở payload learner default. |
+| VOC-DATA-04 | Xây importer JSONL | VOC-DATA-01 | **Implemented:** importer nhận catalog canonical `*.jsonl`, validate UTF-8/one-object-per-line/ID/topic/`def_vi`, upsert idempotent `vocabulary_cards` ở `draft`, báo file + line khi lỗi. |
+| VOC-DATA-05 | Normalize deck mapping | VOC-DATA-04 | **Implemented:** `topic` là deck chính; `topics_all` tạo membership không nhân bản learner state; 23 display name Việt; deck/card dùng cùng catalog SHA content version. |
+| VOC-DATA-06 | Content quality gate CI | VOC-DATA-04, VOC-INFRA-02 | **Implemented:** CI validate source và catalog canonical output: 5.275 card, 7.309 `def_vi` non-empty, không duplicate ID, không lộ `zh`/Youdao ở payload learner. |
 | VOC-DATA-07 | Seed beta content | VOC-DATA-03, VOC-DATA-04 | Beta decks query được; counts theo database khớp importer report. |
+
+### Vị trí thực thi hiện tại — 2026-08-20
+
+- Đã xong kỹ thuật: `VOC-DATA-04`, `VOC-DATA-05`, `VOC-DATA-06`, `VOC-QA-03`; dry-run catalog là 5.275 card, deck mapping là 23 deck / 8.271 membership.
+- Chưa chạy `--apply`, seed hoặc publish. `VOC-DATA-07` chờ Product/Content chốt beta deck và `publish_status` ở `VOC-PLAN-02`.
+- Không mở `VOC-API-01` trong task này: repo hiện chỉ có static mockup, chưa có Next.js BFF/Supabase client; `supabase/config.toml` đang đặt `enable_anonymous_sign_ins = false` dù D-12 yêu cầu Anonymous Auth. Cần Claude/Product duyệt scope bootstrap app, policy guest/retention và cấu hình environment trước khi đổi kiến trúc/privacy runtime.
 
 ### M2 — Domain service và API
 
@@ -114,7 +120,7 @@ Workflow `.github/workflows/vocabulary-content.yml` đã chạy validator/canoni
 |---|---|---|---|
 | VOC-QA-01 | Unit test SRS | VOC-API-04 | **Implemented:** cover đủ 16 ô bảng 8.2, interval bảng 8.1, UTC boundary, stage 6 -> `mastered`, và `review` stage 1 + `Chưa thuộc` -> `learning` stage 0. |
 | VOC-QA-02 | Integration test review write | VOC-API-05 | Verify transaction, idempotency, RLS isolation, reload persistence. |
-| VOC-QA-03 | Importer regression test | VOC-DATA-04 | Reject malformed line/duplicate ID; ensure only JSONL consumed. |
+| VOC-QA-03 | Importer regression test | VOC-DATA-04 | **Implemented:** reject malformed line/duplicate ID/non-JSONL catalog, xác nhận source normalizer chỉ đọc `*.jsonl`. |
 | VOC-QA-04 | E2E core journeys | VOC-WEB-07 | Due review, new deck, no due cards, save retry, audio failure, guest refresh, thẻ `Chưa thuộc` quay lại trong phiên, và offline khóa đánh giá/không tạo review event theo ADR-002. |
 | VOC-QA-05 | Instrument analytics | VOC-WEB-02 đến VOC-WEB-07, VOC-PLAN-07 | Emit events section 11 spec; không event nào rời thiết bị trước khi có consent; không gửi `learner_id`/`auth.uid()` sang analytics bên thứ ba; không lộ word/nghĩa. |
 | VOC-QA-06 | Performance check | VOC-DATA-07, VOC-WEB-08 | Không tải toàn bộ 5.275 card lúc first load; core interaction <3s mobile baseline. |

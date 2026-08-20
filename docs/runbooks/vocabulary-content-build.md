@@ -36,6 +36,17 @@ npm run vocab:import-catalog -- --apply
 
 Importer không tạo deck membership hoặc publish status; đó là bước mapping/deck beta riêng.
 
+### Import deck mapping draft
+
+Deck importer sinh mapping từ `topics_all`, giữ một `card_id` dùng chung giữa các deck và ghi cùng `catalog_sha256` vào `content_version` của deck. Nó chỉ tạo/cập nhật deck `draft`; không tự publish beta deck.
+
+```powershell
+npm run vocab:import-decks
+npm run vocab:import-decks -- --apply
+```
+
+Chỉ chạy `--apply` sau khi catalog card cùng version đã import thành công. Publish `Environment`, `Education`, `Technology`, `General Academic` hay danh sách thay thế vẫn cần Product chốt ở VOC-PLAN-02.
+
 ### 1. Thay đổi content nguồn
 
 1. Chỉnh/sync chỉ file `.jsonl`.
