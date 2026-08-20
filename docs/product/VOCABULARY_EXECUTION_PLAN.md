@@ -16,7 +16,7 @@ Phát hành luồng `/vocabulary` cho phép người học xem deck theo topic, 
 | `senses[].def_vi` | Có đủ 7.309 nghĩa; cần QA nội dung song ngữ trước production |
 | `examples[].vi`, `collocations[].vi` | Chưa có; UI dùng English fallback theo spec |
 | Mockup `/vocabulary` | Có trong `index.html`; chỉ là prototype visual |
-| Database, auth, API, ingestion runtime | Chưa implement |
+| Database foundation | Vocabulary catalog/learner schema, indexes, grants và RLS đã migrate + pgTAP verify. Auth resolver, API và ingestion runtime chưa implement. |
 | Audio source / artifact | Google TTS đã sinh và upload 10.550 MP3 UK/US; Supabase CDN delivery probe UK/US pass, chờ QA phát âm trước runtime enable |
 | Backup 10.550 MP3 | **Chưa có.** `.gitignore` loại `.generated/audio/`, artifact chỉ tồn tại trên máy local |
 | QA phát âm TTS | Chưa làm; 38 card đồng tự khác âm có rủi ro đọc sai |
@@ -75,9 +75,9 @@ Workflow `.github/workflows/vocabulary-content.yml` đã chạy validator/canoni
 
 | ID | Task | Dependency | Definition of done |
 |---|---|---|---|
-| VOC-DATA-01 | Viết schema migration content | VOC-PLAN-02 | Có `vocabulary_cards`, `vocabulary_decks`, `vocabulary_deck_cards`; PK/FK/index và `publish_status`. |
-| VOC-DATA-02 | Viết schema migration learner | VOC-PLAN-05 | Có `learner_card_states`, `learner_card_reviews`; `learner_id` FK tới `auth.users` (anonymous UUID), unique `(learner_id, card_id)` và idempotency key unique. Không tạo `guest_identities`. |
-| VOC-DATA-03 | Bật RLS và policy | VOC-DATA-01, VOC-DATA-02 | Content public/read-only theo publish status; policy learner dùng thẳng `auth.uid()`, learner chỉ đọc/ghi state của mình. |
+| VOC-DATA-01 | Viết schema migration content | VOC-PLAN-02 | **Implemented:** `vocabulary_cards`, `vocabulary_decks`, `vocabulary_deck_cards`; PK/FK/index và `publish_status`. Chưa seed/publish deck khi Product chưa chốt beta list. |
+| VOC-DATA-02 | Viết schema migration learner | VOC-PLAN-05 | **Implemented:** `learner_card_states`, `learner_card_reviews`; `learner_id` FK tới `auth.users`, unique `(learner_id, card_id)` và `(learner_id, idempotency_key)`. Không có `guest_identities`. |
+| VOC-DATA-03 | Bật RLS và policy | VOC-DATA-01, VOC-DATA-02 | **Implemented and remote-verified:** content read-only theo publish status; policy learner dùng `auth.uid()`, grants tối thiểu, learner chỉ đọc/ghi data của mình. |
 | VOC-DATA-04 | Xây importer JSONL | VOC-DATA-01 | Đọc **chỉ** `*.jsonl`; validate UTF-8/one-object-per-line/ID/topic; upsert idempotent; report file + line khi lỗi. |
 | VOC-DATA-05 | Normalize deck mapping | VOC-DATA-04 | `topic` là deck chính; `topics_all` không nhân bản learner state; display name Việt có mapping. |
 | VOC-DATA-06 | Content quality gate CI | VOC-DATA-04, VOC-INFRA-02 | Gate của VOC-INFRA-02 chạy trên cả output importer, không chỉ file JSONL: 5.275 card, 7.309 `def_vi` non-empty, không duplicate ID, không lộ `zh` ở payload learner default. |

@@ -11,6 +11,7 @@ Mọi thay đổi đáng chú ý của IELTS Cozy được ghi trong file này.
 - Vocabulary pull-request content gate (`vocabulary-content`) validates raw JSONL, builds and validates canonical learner catalog, and runs vocabulary contract tests on Node 20.
 - Deterministic two-rating Vocabulary SRS domain function with all 16 specified transitions, UTC due dates, and unit coverage.
 - Vocabulary validator tests and Google TTS token-refresh/retry tests.
+- Vocabulary catalog and learner-state Supabase migration, RLS policies, pgTAP coverage, and GitHub local database-test workflow.
 - Static IELTS runtime: Home, Dashboard, Vocabulary flashcards, Grammar feedback, Listening demo, and Progress screen.
 - Browser-local learning progress with dependency-free runtime verification for Vercel build.
 - Architecture scaffold cho B2C IELTS MVP: Vocabulary, Grammar, Listening.

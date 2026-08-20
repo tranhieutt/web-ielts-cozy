@@ -12,7 +12,15 @@ Migration `20260820041818_create_vocabulary_catalog_and_learner_state.sql` creat
 
 ## Apply
 
-Use Supabase CLI migration workflow. Verify migration list, then run RLS test against local staging schema before deploy. Do not use service-role credentials in browser code.
+Use helper local-only; it reads ignored `.env.local` and never prints password:
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/supabase/push-linked-migrations.ps1 -DryRun
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/supabase/push-linked-migrations.ps1
+npx --yes supabase@2.115.0 db query --linked --file scripts/supabase/verify-vocabulary-schema.sql
+```
+
+Verify migration list and RLS query after apply. Do not use service-role credentials in browser code.
 
 ## Rollback
 
