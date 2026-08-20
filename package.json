@@ -9,6 +9,9 @@
   "scripts": {
     "build": "node scripts/verify-static-runtime.mjs",
     "vercel-build": "npm run build",
-    "vocab:translate-definitions": "node scripts/vocabulary/translate-definitions.mjs"
+    "vocab:translate-definitions": "node scripts/vocabulary/translate-definitions.mjs",
+    "vocab:generate-audio": "node scripts/vocabulary/generate-audio.mjs",
+    "vocab:upload-audio": "node scripts/vocabulary/upload-audio-to-supabase.mjs",
+    "vocab:validate-content": "node scripts/vocabulary/validate-content.mjs"
   }
 }

@@ -17,6 +17,7 @@ coverage/
 playwright-report/
 test-results/
 .translation-work/
+.generated/audio/
 content/vocabulary/ielts_vocab_by_topic/.backups/
 content/vocabulary/ielts_vocab_by_topic/*.translation-tmp
 content/vocabulary/ielts_vocab_by_topic/*.csv

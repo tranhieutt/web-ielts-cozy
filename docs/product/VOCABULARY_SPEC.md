@@ -48,7 +48,7 @@ MVP ưu tiên thói quen học hàng ngày và dữ liệu tiến độ đáng t
 2. `index.html` là nguồn đúng cho layout/mockup đang hiển thị. Tài liệu này là nguồn đúng cho hành vi Vocabulary trước khi implement.
 3. Nội dung gốc và tiến độ học tách riêng. Không ghi đè file JSONL khi người học ôn từ.
 4. Không hiển thị `def_zh`, `examples[].zh`, `collocations[].zh` trong UI tiếng Việt mặc định.
-5. Audio URL nguồn ngoài chỉ là metadata đầu vào; phải xác minh quyền dùng, độ ổn định và phương án proxy/cache trước production.
+5. Không dùng runtime các URL audio Youdao trong JSONL. Google Cloud TTS đã sinh 10.550 MP3 UK/US mới cho 5.275 card; chỉ bật runtime sau khi upload Supabase Storage/CDN và kiểm tra delivery.
 
 ## 3. Dữ liệu nguồn đã rà soát
 
@@ -106,7 +106,7 @@ Mỗi dòng JSONL là một `VocabularyCard` gốc. Parser phải đọc UTF-8, 
 | `word`, `is_phrase` | Có | Tiêu đề thẻ; cụm từ hiển thị nguyên văn. |
 | `topic`, `topics_all`, `topic_scores` | Có | `topic` quyết định deck chính; `topics_all` chỉ hỗ trợ khám phá sau này. |
 | `phonetic.uk`, `phonetic.us` | Có | Chọn UK mặc định; cho phép đổi US khi cả hai có dữ liệu. |
-| `audio.uk`, `audio.us` | Có điều kiện | Chỉ phát sau khi media source được duyệt. |
+| `audio.uk`, `audio.us` | Không dùng runtime | Metadata Youdao gốc giữ để trace, không phát/proxy/cache. Runtime dùng object path Google TTS sau CDN upload. |
 | `cefr`, `target_band` | Có | Nhãn độ khó/filter. Thiếu CEFR hiển thị “Chưa phân cấp”. |
 | `senses` | Có | Lấy nghĩa ưu tiên theo policy ở mục 5. |
 | `examples`, `collocations` | Có | Hiển thị khi có; không có thì ẩn vùng tương ứng. |
@@ -137,7 +137,7 @@ Mockup/PRD yêu cầu nghĩa và ví dụ tiếng Việt. Đợt enrichment ngà
 
 - Coverage `def_vi` đã đạt cho toàn bộ deck. Bản dịch máy vẫn cần reviewer song ngữ audit trước production, ưu tiên Health, Government/Law, C1/C2 và các nghĩa dịch từ tiếng Trung.
 - Mỗi thẻ publish phải có: `id`, `word`, tối thiểu một `sense.def_en` hoặc `sense.def_vi`, và topic hợp lệ.
-- Audio chỉ bật khi quyền sử dụng và SLA nguồn được ghi nhận. Không gọi URL bên thứ ba không kiểm soát từ browser production.
+- 10.550 MP3 Google TTS đã pass manifest/file integrity audit. Audio chỉ bật sau khi bucket Supabase/CDN upload và browser delivery probe pass; không gọi URL Youdao từ browser production.
 - Không hiển thị text lỗi mã hóa, source URL, tag nội bộ, hay văn bản chưa review.
 
 ## 6. Cấu trúc màn hình
@@ -273,7 +273,7 @@ Không gửi word, nghĩa, hoặc lịch sử card đầy đủ vào analytics b
 | Vấn đề | Ảnh hưởng | Người cần chốt |
 |---|---|---|
 | Ví dụ/collocation tiếng Việt chưa có | Mặt sau flashcard chưa song ngữ hoàn toàn | Product + content owner |
-| URL audio Youdao bên thứ ba | Rủi ro bản quyền, CORS, downtime | Product + legal/engineering |
+| Supabase Storage chưa provision/configured | Audio generated chưa delivery qua CDN | Engineering + project owner |
 | 5.275 cards trong static bundle | Tải chậm nếu nhét toàn bộ JSONL vào browser | Engineering: ingest/index/paginate trước runtime |
 | Guest-first nhưng cần database | Rủi ro mất tiến độ khi đổi thiết bị | Product: thời điểm mời tạo tài khoản/claim progress |
 | Chất lượng topic/CEFR không đồng đều | Deck đề xuất sai mức | Content owner: review/publish status |
@@ -281,7 +281,7 @@ Không gửi word, nghĩa, hoặc lịch sử card đầy đủ vào analytics b
 ## 13. Câu hỏi mở
 
 1. Có dịch tiếp `examples[].vi` và `collocations[].vi` sau khi QA xong `def_vi` không?
-2. Audio cần host/proxy nội bộ hay loại khỏi MVP cho đến khi có license?
+2. Cấp Supabase project URL và service-role key local để upload manifest MP3 vào bucket `vocabulary-audio`?
 3. Người học khách giữ tiến độ bao lâu và lúc nào được mời tạo tài khoản để đồng bộ?
 4. Deck nào được publish beta đầu tiên? Khuyến nghị: Environment, Education, Technology, General Academic.
 
@@ -290,5 +290,5 @@ Không gửi word, nghĩa, hoặc lịch sử card đầy đủ vào analytics b
 - Product duyệt mục 2, 5 và lịch ở mục 8.
 - Content owner audit mẫu bản dịch `def_vi`, chốt danh sách deck beta, `publish_status`.
 - Engineering chốt pipeline JSONL -> catalog/index; không fetch 23 file thô vào first load.
-- Quyền sử dụng audio được xác minh hoặc audio được feature-flag off.
+- Áp dụng migration bucket Supabase, upload manifest MP3 và test CDN delivery; giữ feature flag off cho tới lúc probe pass.
 - Design bổ sung states: card chưa lật, loading, audio error, save error, empty due, completed, offline.
