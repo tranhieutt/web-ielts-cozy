@@ -8,7 +8,7 @@
   },
   "scripts": {
     "build": "node scripts/verify-static-runtime.mjs",
-    "vercel-build": "npm run build",
+    "vercel-build": "npm run build && npm run web:build",
     "test": "node --test \"test/**/*.test.mjs\"",
     "vocab:translate-definitions": "node scripts/vocabulary/translate-definitions.mjs",
     "vocab:generate-audio": "node scripts/vocabulary/generate-audio.mjs",
@@ -18,10 +18,12 @@
     "vocab:validate-content": "node scripts/vocabulary/validate-content.mjs",
     "vocab:normalize-content": "node scripts/vocabulary/normalize-content.mjs",
     "vocab:test-normalize": "node --test test/vocabulary/normalize-content.test.mjs",
-    "web:dev": "npm run dev --workspace apps/web",
-    "web:build": "npm run build --workspace apps/web",
+    "web:dev": "npm run prototype:sync && npm run dev --workspace apps/web",
+    "web:build": "npm run prototype:sync && npm run build --workspace apps/web",
     "vocab:build-slice-fixture": "node scripts/vocabulary/build-slice-fixture.mjs",
-    "design:build-tokens": "node scripts/design/build-token-css.mjs"
+    "design:build-tokens": "node scripts/design/build-token-css.mjs",
+    "vocab:test-integration": "node --test test/vocabulary/review-write.integration.test.mjs",
+    "prototype:sync": "node scripts/sync-prototype.mjs"
   },
   "workspaces": [
     "apps/*",

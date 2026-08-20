@@ -15,8 +15,13 @@ import {
   submitReview,
 } from '../../apps/web/src/features/vocabulary/service.ts';
 
-const LEARNER = '11111111-1111-4111-8111-111111111111';
-const OTHER_LEARNER = '22222222-2222-4222-8222-222222222222';
+/**
+ * `accessToken: null` selects the in-memory fixture adapter. That is the whole
+ * point of these tests: they cover the service logic without a database. The
+ * durable Supabase path is covered by VOC-QA-02 against the real project.
+ */
+const LEARNER = { learnerId: '11111111-1111-4111-8111-111111111111', accessToken: null };
+const OTHER_LEARNER = { learnerId: '22222222-2222-4222-8222-222222222222', accessToken: null };
 const KEY = () => crypto.randomUUID();
 
 beforeEach(() => repository.resetFixtureState());
@@ -135,4 +140,21 @@ test('progress is empty for a learner who has rated nothing', async () => {
   assert.equal(progress.dueCount, 0);
   assert.equal(progress.scheduledCount, 0);
   assert.equal(progress.decks[0].progress.newCount, 20);
+});
+
+test('a card listed in its own topics_all is counted once, not twice (VOC-03)', async () => {
+  // Real catalog rows carry `primary_topic` inside `topics_all`. Concatenating
+  // `[topic, ...topics_all]` therefore double-counted the primary deck, so a
+  // learner who had rated 3 cards saw learningCount 6.
+  const [card] = await buildReviewQueue(LEARNER, { deck: 'environment', mode: 'new', limit: 1 });
+  assert.ok(
+    card.topics_all.includes(card.topic),
+    'fixture must mirror production shape for this regression to mean anything',
+  );
+
+  await submitReview(LEARNER, { cardId: card.id, rating: 'known', idempotencyKey: KEY() });
+
+  const [deck] = await getDeckCatalog(LEARNER);
+  const { learningCount, masteredCount } = deck.progress;
+  assert.equal(learningCount + masteredCount, 1, 'one rated card must count once');
 });
