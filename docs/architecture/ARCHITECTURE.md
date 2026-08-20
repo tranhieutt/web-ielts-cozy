@@ -42,11 +42,11 @@ Age gate and consent records are mandatory because the product includes minors. 
 
 ## Client/server rule
 
-Client components handle interaction: audio playback, timer, flashcard, forms, and sync queue. Server Actions or `/api/v1` Route Handlers validate input and invoke feature services. UI does not directly access database tables.
+Client components handle interaction: audio playback, timer, flashcard, and forms. Server Actions or `/api/v1` Route Handlers validate input and invoke feature services. UI does not directly access database tables.
 
 ## Offline behavior
 
-PWA caches app shell, active deck/exercise metadata, and queued mutations. Audio does not download by default. Offline review/answer events go to IndexedDB then synchronize with retry/backoff and idempotency keys.
+PWA may cache app shell and active deck/exercise metadata. Audio does not download by default. Vocabulary MVP does not queue offline review mutations: rating controls are disabled offline and no progress is reported saved until server confirmation. Revisit after beta under ADR-002.
 
 ## Reliability targets
 

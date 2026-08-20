@@ -86,13 +86,15 @@ Release asset gate:
 ### 5. Upload Supabase Storage CDN
 
 1. Apply `supabase/migrations/202608190001_create_vocabulary_audio_bucket.sql`.
-2. Cấu hình local-only `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`.
+2. Copy `.env.example` sang `.env.local` (đã Git-ignore), rồi cấu hình `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` local-only. Không gửi, commit hay đưa service-role key vào browser.
 3. Dry-run, rồi upload resumable:
 
 ```powershell
 npm run vocab:upload-audio -- --source-dir .generated/audio/vocabulary
 npm run vocab:upload-audio -- --source-dir .generated/audio/vocabulary --apply
 ```
+
+Nếu network/runtime bị giới hạn, dùng `--max-files 1000`; script checkpoint và lần chạy sau bỏ qua object đã upload.
 
 4. Probe tối thiểu một object UK và US bằng public CDN URL. Nếu lỗi, giữ feature flag audio off.
 5. Import object paths vào content database; ví dụ `audio_version='v1'`, `audio_path_uk='v1/uk/{id}.mp3'`.
@@ -110,5 +112,4 @@ Service-role key chỉ nằm local/CI secret. Không đưa vào browser, Vercel 
 
 - 23 JSONL, 5.275 card, 7.309 `def_vi`: validated.
 - 10.550 MP3 Google TTS: local validated, 5.275 UK + 5.275 US, 91.736.256 bytes.
-- Supabase migration/uploader: ready; chưa upload vì môi trường local chưa có `SUPABASE_URL` và `SUPABASE_SERVICE_ROLE_KEY`.
-
+- Supabase migration/uploader: bucket `vocabulary-audio` đã migrate; upload 10.550 object hoàn tất; public CDN probe một object UK và US trả `206 audio/mpeg`.

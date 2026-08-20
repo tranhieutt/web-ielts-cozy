@@ -15,7 +15,7 @@
 | D-11 | Immutable content versions | Preserve score/history correctness |
 | D-12 | Anonymous Auth UUID as learner key | Supports guest progress and later account linking |
 | D-13 | UI never directly accesses database | Central validation, audit, and security boundary |
-| D-14 | Lightweight offline support | Preserve progress without offline audio complexity |
+| D-14 | Defer Vocabulary offline review queue | Vocabulary MVP is online-only for review writes; revisit after beta. See ADR-002. |
 | D-15 | Attempt snapshots content version | Historical scoring remains reproducible |
 | D-16 | Tests are merge gate | Protect learning progress and content correctness |
 | D-17 | Local, preview, production environments | Avoid direct production experimentation |

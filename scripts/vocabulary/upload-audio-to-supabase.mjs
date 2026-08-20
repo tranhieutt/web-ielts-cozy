@@ -16,11 +16,28 @@ function parsePositiveInteger(value, name) {
   return parsed;
 }
 
+function loadLocalEnvironment(filePath) {
+  if (!existsSync(filePath)) return;
+  for (const rawLine of readFileSync(filePath, 'utf8').split(/\r?\n/u)) {
+    const line = rawLine.trim();
+    if (!line || line.startsWith('#')) continue;
+    const match = line.match(/^(?:export\s+)?([A-Z][A-Z0-9_]*)\s*=\s*(.*)$/u);
+    if (!match) throw new Error(`Invalid environment entry in ${relative(ROOT, filePath)}.`);
+    const [, name, rawValue] = match;
+    const quoted = rawValue.match(/^(?:"([\s\S]*)"|'([\s\S]*)')$/u);
+    const value = quoted ? (quoted[1] ?? quoted[2]) : rawValue.trim();
+    if (process.env[name] === undefined) process.env[name] = value;
+  }
+}
+
 const sourceDir = resolve(argumentValue('--source-dir') ?? DEFAULT_SOURCE_DIR);
+const environmentFile = resolve(argumentValue('--env-file') ?? join(ROOT, '.env.local'));
+loadLocalEnvironment(environmentFile);
 const options = {
   apply: process.argv.includes('--apply'),
   bucket: argumentValue('--bucket') ?? 'vocabulary-audio',
   concurrency: parsePositiveInteger(argumentValue('--concurrency'), '--concurrency') ?? 4,
+  maxFiles: parsePositiveInteger(argumentValue('--max-files'), '--max-files'),
   sourceDir,
   supabaseKey: process.env.SUPABASE_SERVICE_ROLE_KEY,
   supabaseUrl: process.env.SUPABASE_URL?.replace(/\/$/u, ''),
@@ -126,20 +143,23 @@ async function main() {
   const generatedManifest = readJson(manifestPath(), 'Generated audio manifest');
   const uploadManifest = readUploadManifest();
   const entries = entriesFromManifest(generatedManifest);
-  const pending = entries.filter((item) => !isUploaded(item, uploadManifest));
+  const allPending = entries.filter((item) => !isUploaded(item, uploadManifest));
+  const pending = options.maxFiles ? allPending.slice(0, options.maxFiles) : allPending;
   const totalBytes = pending.reduce((sum, item) => sum + readFileSync(item.sourcePath).length, 0);
 
   console.log(JSON.stringify({
     bucket: options.bucket,
     generatedFiles: entries.length,
     pendingFiles: pending.length,
+    remainingFiles: allPending.length,
     pendingBytes: totalBytes,
     concurrency: options.concurrency,
+    environmentFile: existsSync(environmentFile) ? relative(ROOT, environmentFile) : null,
     apply: options.apply,
   }, null, 2));
 
   if (!options.apply) {
-    console.log('Dry run only. Set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY, then add --apply to upload.');
+    console.log('Dry run only. Set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY in .env.local, then add --apply to upload.');
     return;
   }
   if (!options.supabaseUrl || !options.supabaseKey) {

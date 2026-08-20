@@ -39,6 +39,7 @@ MVP ưu tiên thói quen học hàng ngày và dữ liệu tiến độ đáng t
 - AI chấm từ vựng, Speaking, gamification xã hội, leaderboard.
 - Người học tự tạo bộ từ, import file, chia sẻ deck.
 - Đồng bộ từ đã lưu từ Reading, Listening, Writing; chỉ chừa data model để thêm sau.
+- Hàng đợi review offline và đồng bộ mutation. Vocabulary MVP yêu cầu kết nối để lưu đánh giá theo ADR-002.
 - Bốn mức chấm kiểu Anki/FSRS; MVP giữ hai thao tác đúng với mockup hiện có.
 - Dịch máy tự động xuất thẳng cho người học.
 
@@ -48,7 +49,7 @@ MVP ưu tiên thói quen học hàng ngày và dữ liệu tiến độ đáng t
 2. `index.html` là nguồn đúng cho layout/mockup đang hiển thị. Tài liệu này là nguồn đúng cho hành vi Vocabulary trước khi implement.
 3. Nội dung gốc và tiến độ học tách riêng. Không ghi đè file JSONL khi người học ôn từ.
 4. Không hiển thị `def_zh`, `examples[].zh`, `collocations[].zh` trong UI tiếng Việt mặc định.
-5. Không dùng runtime các URL audio Youdao trong JSONL. Google Cloud TTS đã sinh 10.550 MP3 UK/US mới cho 5.275 card; chỉ bật runtime sau khi upload Supabase Storage/CDN và kiểm tra delivery.
+5. Không dùng runtime các URL audio Youdao trong JSONL. Google Cloud TTS đã sinh và upload 10.550 MP3 UK/US mới cho 5.275 card vào Supabase Storage/CDN; delivery probe UK/US pass. Chỉ bật runtime sau QA phát âm pass.
 
 ## 3. Dữ liệu nguồn đã rà soát
 
@@ -141,7 +142,7 @@ Lý do tách rule 1–2 khỏi rule 5: nghĩa là nội dung lõi của thẻ, t
 - Mỗi thẻ publish phải có: `id`, `word`, topic hợp lệ, và `def_vi` non-empty ở **mọi** sense.
 - 10.550 MP3 Google TTS đã pass manifest/file integrity audit. Lưu ý integrity audit chỉ chứng minh file tải được và đúng định dạng MP3, **không** chứng minh đọc đúng.
 - Trước khi bật audio phải QA phát âm bằng tai tối thiểu 38 card đồng tự khác âm (`record`, `content`, `subject`, `present`, `separate`, `deliberate`, `advocate`, `conflict`, `tear`, `bow`, `desert`, `lead`…). `generate-audio.mjs` gửi plain text nên Google TTS tự chọn một cách đọc; corpus đã có IPA ở `phonetic.uk`/`phonetic.us` nên card sai phải sinh lại bằng SSML `<phoneme>`.
-- Audio chỉ bật sau khi bucket Supabase/CDN upload, browser delivery probe pass và QA phát âm pass; không gọi URL Youdao từ browser production.
+- Audio đã upload bucket Supabase/CDN và browser delivery probe UK/US pass; vẫn chỉ bật runtime sau QA phát âm pass. Không gọi URL Youdao từ browser production.
 - Không hiển thị text lỗi mã hóa, source URL, tag nội bộ, hay văn bản chưa review.
 
 ## 6. Cấu trúc màn hình
@@ -172,7 +173,7 @@ Query/route state tối thiểu: `deck`, `mode` (`due` hoặc `new`), `limit`. R
 | Lật thẻ | Tap/click/Enter lật thẻ. Animation phải tôn trọng `prefers-reduced-motion`. |
 | Mặt sau | Nghĩa theo policy ngôn ngữ, tối đa 1–2 sense đầu tiên, một ví dụ, collocation khi có. |
 | Đánh giá | `Chưa thuộc` và `Thuộc rồi` chỉ active sau khi mặt sau đã được mở. |
-| Feedback | Sau mỗi đánh giá, ghi tiến độ rồi chuyển thẻ tiếp theo; khi offline phải báo trạng thái chưa đồng bộ. |
+| Feedback | Sau mỗi đánh giá, chỉ chuyển thẻ tiếp theo sau khi server xác nhận đã lưu. Khi offline, giữ thẻ hiện tại, khóa đánh giá và giải thích cần kết nối để lưu tiến độ. |
 
 Không tự phát audio. Mọi audio control có nhãn trợ năng rõ: “Nghe phát âm Anh-Anh của {word}”.
 
@@ -205,7 +206,7 @@ Hiển thị số thẻ đã ôn, số chọn Thuộc rồi, số sẽ quay lạ
 - Không có thẻ hợp lệ: nói rõ “Bộ từ đang được cập nhật”, không hiện card rỗng.
 - Audio lỗi: giữ phiên học chạy, hiển thị “Chưa phát được audio”, không đổi kết quả ôn.
 - Lưu review lỗi: không chuyển sang thẻ tiếp theo cho tới khi retry thành công hoặc người học chọn thoát; hiển thị trạng thái rõ ràng.
-- Offline: có thể queue review cục bộ nếu implement offline; khi chưa có queue, khóa đánh giá và giải thích. Không giả báo đã lưu.
+- Offline: Vocabulary MVP không queue review cục bộ. Khóa đánh giá, giữ thẻ hiện tại và giải thích cần kết nối để lưu; không giả báo đã lưu. Xem ADR-002.
 
 ## 8. Thuật toán lặp lại ngắt quãng MVP
 
@@ -322,7 +323,7 @@ Theo D-05 (hỗ trợ người học vị thành niên), analytics là consent-g
 | Vấn đề | Ảnh hưởng | Người cần chốt |
 |---|---|---|
 | Ví dụ/collocation tiếng Việt chưa có | Mặt sau flashcard chưa song ngữ hoàn toàn | Product + content owner |
-| Supabase Storage chưa provision/configured | Audio generated chưa delivery qua CDN | Engineering + project owner |
+| QA phát âm TTS chưa hoàn tất | Audio delivery đã pass nhưng có thể dạy sai cách đọc đồng tự khác âm | Content owner + Engineering |
 | 5.275 cards trong static bundle | Tải chậm nếu nhét toàn bộ JSONL vào browser | Engineering: ingest/index/paginate trước runtime |
 | Guest-first nhưng cần database | Rủi ro mất tiến độ khi đổi thiết bị | Product: thời điểm mời tạo tài khoản/claim progress |
 | Chất lượng topic/CEFR không đồng đều | Deck đề xuất sai mức | Content owner: review/publish status |
@@ -330,7 +331,7 @@ Theo D-05 (hỗ trợ người học vị thành niên), analytics là consent-g
 | 10.550 MP3 chỉ nằm trên máy local, `.gitignore` loại `.generated/audio/` | Mất máy trước khi upload xong là phải sinh lại toàn bộ, tốn chi phí TTS | Engineering: backup artifact + `manifest.json` **trước** khi upload |
 | Repo chưa có CI (`.github/` không tồn tại) | D-16 và D-18 yêu cầu test/CI là merge gate; content quality gate không có chỗ chạy | Engineering: dựng pipeline tối thiểu trước M1 |
 | Chưa có age gate/consent cho người học vị thành niên | D-05 chưa được thực thi trong khi §11 đã lên lịch 8 event | Product + Engineering: consent trước event đầu tiên |
-| Chưa quyết định phạm vi offline | D-14 chốt "lightweight offline support" nhưng §7 để tùy chọn | Product: giữ hay hoãn D-14 cho release này |
+| Offline review chưa hỗ trợ | Người học không thể chấm card khi mất mạng trong MVP | Theo ADR-002; đo nhu cầu sau beta trước khi mở lại scope |
 
 ## 13. Câu hỏi mở
 
@@ -338,16 +339,15 @@ Theo D-05 (hỗ trợ người học vị thành niên), analytics là consent-g
 2. Cấp Supabase project URL và service-role key local để upload manifest MP3 vào bucket `vocabulary-audio`?
 3. Người học khách giữ tiến độ bao lâu và lúc nào được mời tạo tài khoản để đồng bộ? Lưu ý anonymous UUID đã giữ tiến độ trên cùng thiết bị/trình duyệt; câu hỏi còn lại chỉ là thời điểm mời và cách xử lý đổi thiết bị.
 4. Deck nào được publish beta đầu tiên? Khuyến nghị: Environment, Education, Technology, General Academic.
-5. D-14 (lightweight offline) có nằm trong release Vocabulary này không, hay hoãn sang release sau? Hiện plan không có task nào cho offline.
-6. Consent/age gate cho người học vị thành niên (D-05) do release Vocabulary tự làm hay chờ luồng onboarding chung?
+5. Consent/age gate cho người học vị thành niên (D-05) do release Vocabulary tự làm hay chờ luồng onboarding chung?
 
 ## 14. Definition of Ready để code
 
 - Product duyệt mục 2, 5 và lịch ở mục 8.
 - Content owner audit mẫu bản dịch `def_vi`, chốt danh sách deck beta, `publish_status`.
 - Engineering chốt pipeline JSONL -> catalog/index; không fetch 23 file thô vào first load.
-- Áp dụng migration bucket Supabase, upload manifest MP3 và test CDN delivery; giữ feature flag off cho tới lúc probe pass.
-- Design bổ sung states: card chưa lật, loading, audio error, save error, empty due, completed, offline.
+- Migration bucket, upload manifest MP3 và CDN delivery probe đã pass; giữ feature flag off tới khi QA phát âm pass.
+- Design bổ sung states: card chưa lật, loading, audio error, save error, empty due, completed, offline-disabled.
 - Engineering dựng CI tối thiểu chạy được `npm run vocab:validate-content`; D-16/D-18 yêu cầu gate này tồn tại trước khi merge content.
-- Product chốt consent/age gate (D-05) và phạm vi offline (D-14) cho release này.
+- Product chốt consent/age gate (D-05) cho release này. Offline review đã hoãn theo ADR-002.
 - Content owner QA phát âm 38 card đồng tự khác âm; card sai được sinh lại trước khi bật `audio_enabled`.

@@ -12,6 +12,8 @@
     "vocab:translate-definitions": "node scripts/vocabulary/translate-definitions.mjs",
     "vocab:generate-audio": "node scripts/vocabulary/generate-audio.mjs",
     "vocab:upload-audio": "node scripts/vocabulary/upload-audio-to-supabase.mjs",
-    "vocab:validate-content": "node scripts/vocabulary/validate-content.mjs"
+    "vocab:validate-content": "node scripts/vocabulary/validate-content.mjs",
+    "vocab:normalize-content": "node scripts/vocabulary/normalize-content.mjs",
+    "vocab:test-normalize": "node --test test/vocabulary/normalize-content.test.mjs"
   }
 }

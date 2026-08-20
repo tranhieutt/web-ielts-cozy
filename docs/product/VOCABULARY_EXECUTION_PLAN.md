@@ -17,7 +17,7 @@ Phát hành luồng `/vocabulary` cho phép người học xem deck theo topic, 
 | `examples[].vi`, `collocations[].vi` | Chưa có; UI dùng English fallback theo spec |
 | Mockup `/vocabulary` | Có trong `index.html`; chỉ là prototype visual |
 | Database, auth, API, ingestion runtime | Chưa implement |
-| Audio source / artifact | Google TTS đã sinh 10.550 MP3 UK/US; Supabase CDN upload chờ project credential |
+| Audio source / artifact | Google TTS đã sinh và upload 10.550 MP3 UK/US; Supabase CDN delivery probe UK/US pass, chờ QA phát âm trước runtime enable |
 | Backup 10.550 MP3 | **Chưa có.** `.gitignore` loại `.generated/audio/`, artifact chỉ tồn tại trên máy local |
 | QA phát âm TTS | Chưa làm; 38 card đồng tự khác âm có rủi ro đọc sai |
 | CI pipeline | **Chưa có.** Repo không có `.github/`, trong khi D-16/D-18 coi test/CI là merge gate |
@@ -55,7 +55,7 @@ Phát hành luồng `/vocabulary` cho phép người học xem deck theo topic, 
 | VOC-PLAN-03 | Audit bản dịch `def_vi` | VOC-PLAN-01 | Review 100% nghĩa nguồn Trung, sample >=10% nghĩa nguồn Anh; tạo issue cho bản dịch sai/awkward. |
 | VOC-PLAN-04 | Quyết định audio | VOC-PLAN-01 | Google TTS là nguồn approved; apply bucket migration, upload CDN và chỉ bật `audio_enabled` sau delivery probe **và** QA phát âm (VOC-PLAN-08) pass. |
 | VOC-PLAN-05 | Chốt guest/account policy | VOC-PLAN-01 | Xác nhận `learner_id` = Supabase Anonymous Auth UUID theo D-12; chốt retention, thời điểm mời tạo tài khoản, xử lý đổi thiết bị. Không thiết kế `guest_id` riêng. |
-| VOC-PLAN-06 | Chốt phạm vi offline | VOC-PLAN-01 | Quyết định giữ hay hoãn D-14 cho release này; nếu hoãn thì ghi vào decision log và spec §7 nói rõ hành vi khóa đánh giá khi offline. |
+| VOC-PLAN-06 | Hoãn offline review queue | VOC-PLAN-01 | Đã chốt theo ADR-002: không có IndexedDB queue/sync trong Vocabulary MVP; offline khóa đánh giá, giữ card hiện tại và không báo đã lưu. |
 | VOC-PLAN-07 | Chốt consent/age gate | VOC-PLAN-01 | D-05 được cụ thể hóa: ai phải consent, chặn analytics ở đâu, dữ liệu tối thiểu nào được thu. Không bắn event trước khi có quyết định này. |
 | VOC-PLAN-08 | QA phát âm TTS | VOC-PLAN-04 | Nghe kiểm 38 card đồng tự khác âm + sample >=2% corpus; lập danh sách card đọc sai cần sinh lại bằng SSML `<phoneme>`. |
 
@@ -69,7 +69,7 @@ Repo hiện chưa có `.github/`, nên mọi task nói "CI" ở dưới đều k
 | VOC-INFRA-02 | Mở rộng validator | VOC-INFRA-01 | `validate-content.mjs` assert đúng 5.275 card / 7.309 `def_vi` (không chỉ in ra), và fail khi `zh` lọt vào payload learner-facing. |
 | VOC-INFRA-03 | Backup artifact audio | VOC-PLAN-04 | 10.550 MP3 + `manifest.json` được backup ra storage bền **trước** khi upload Supabase; ghi lại vị trí và cách khôi phục. |
 | VOC-INFRA-04 | Refresh token khi sinh audio | VOC-INFRA-03 | `generate-audio.mjs` lấy lại access token theo chu kỳ thay vì một lần; job dài hơn 1 giờ không chết vì token hết hạn. |
-| VOC-INFRA-05 | Design states | VOC-PLAN-01 | Design giao đủ states DoR spec §14: chưa lật, loading, audio error, save error, empty due, completed, offline. |
+| VOC-INFRA-05 | Design states | VOC-PLAN-01 | Design giao đủ states DoR spec §14: chưa lật, loading, audio error, save error, empty due, completed, offline-disabled. |
 
 ### M1 — Content platform và database
 
@@ -115,7 +115,7 @@ Repo hiện chưa có `.github/`, nên mọi task nói "CI" ở dưới đều k
 | VOC-QA-01 | Unit test SRS | VOC-API-04 | Cover đủ 16 ô bảng 8.2, interval bảng 8.1, UTC boundaries, repeated `Again`, chuyển stage 6 -> `mastered`, và `review` stage 1 + `Chưa thuộc` -> `learning` stage 0. |
 | VOC-QA-02 | Integration test review write | VOC-API-05 | Verify transaction, idempotency, RLS isolation, reload persistence. |
 | VOC-QA-03 | Importer regression test | VOC-DATA-04 | Reject malformed line/duplicate ID; ensure only JSONL consumed. |
-| VOC-QA-04 | E2E core journeys | VOC-WEB-07 | Due review, new deck, no due cards, save retry, audio failure, guest refresh, thẻ `Chưa thuộc` quay lại trong phiên, và hành vi offline theo quyết định VOC-PLAN-06. |
+| VOC-QA-04 | E2E core journeys | VOC-WEB-07 | Due review, new deck, no due cards, save retry, audio failure, guest refresh, thẻ `Chưa thuộc` quay lại trong phiên, và offline khóa đánh giá/không tạo review event theo ADR-002. |
 | VOC-QA-05 | Instrument analytics | VOC-WEB-02 đến VOC-WEB-07, VOC-PLAN-07 | Emit events section 11 spec; không event nào rời thiết bị trước khi có consent; không gửi `learner_id`/`auth.uid()` sang analytics bên thứ ba; không lộ word/nghĩa. |
 | VOC-QA-06 | Performance check | VOC-DATA-07, VOC-WEB-08 | Không tải toàn bộ 5.275 card lúc first load; core interaction <3s mobile baseline. |
 | VOC-QA-08 | Viết rollback/backup runbook | VOC-DATA-07, VOC-INFRA-03 | Có văn bản: cách rollback migration, khôi phục content version trước, khôi phục artifact audio. Đây là input của VOC-QA-07, không phải sản phẩm phụ. |
@@ -186,7 +186,4 @@ Có thể chạy song song sau M0:
 - Expose raw JSONL hoặc Google Translation credential ở browser/runtime.
 - Bảng `guest_identities` riêng: đã bỏ, dùng Supabase Anonymous Auth UUID theo D-12.
 
-Hai mục dưới đây **chưa** quyết định, không được mặc định là ngoài phạm vi cho tới khi `VOC-PLAN-06`/`VOC-PLAN-07` chốt:
-
-- Offline queue (D-14).
-- Consent/age gate (D-05) làm trong release này hay ở luồng onboarding chung.
+Consent/age gate (D-05) chưa quyết định: làm trong release Vocabulary hay tại luồng onboarding chung. Không bắn analytics trước khi quyết định này được chốt.

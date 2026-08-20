@@ -434,9 +434,18 @@
           <span style="display:block;font-size:13px;opacity:.5">bấm để lật</span>
           </span>
         </button>
-        <div style="display:flex;gap:12px">
-          <button onClick="{{ flashAgain }}" style="background:#f0eee9;color:#000000;border:none;border-radius:24px;white-space:nowrap;padding:12px 16px;font-size:14px;font-weight:700;cursor:pointer">Chưa thuộc</button>
-          <button onClick="{{ flashGot }}" style="background:#3860be;color:#ffffff;border:none;border-radius:24px;white-space:nowrap;padding:12px 16px;font-size:14px;font-weight:700;cursor:pointer">Thuộc rồi 🎉</button>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:8px">
+          <div role="group" aria-label="Tự đánh giá từ vựng" style="display:flex;gap:12px">
+            <sc-if value="{{ flashRatingDisabled }}" hint-placeholder-val="true">
+              <button disabled aria-disabled="true" aria-describedby="flash-rating-hint" style="{{ flashAgainStyle }}">Chưa thuộc</button>
+              <button disabled aria-disabled="true" aria-describedby="flash-rating-hint" style="{{ flashGotStyle }}">Thuộc rồi 🎉</button>
+            </sc-if>
+            <sc-if value="{{ flashRatingEnabled }}" hint-placeholder-val="false">
+              <button aria-describedby="flash-rating-hint" onClick="{{ flashAgain }}" style="{{ flashAgainStyle }}">Chưa thuộc</button>
+              <button aria-describedby="flash-rating-hint" onClick="{{ flashGot }}" style="{{ flashGotStyle }}">Thuộc rồi 🎉</button>
+            </sc-if>
+          </div>
+          <span id="flash-rating-hint" style="font-size:13px;color:#475562">{{ flashRatingHint }}</span>
         </div>
         <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;width:100%;margin-top:12px">
           <sc-for list="{{ vocabSets }}" as="v" hint-placeholder-count="3">
@@ -764,9 +773,14 @@ class Component extends DCLogic {
       flashFront:s.flip?card[1]:card[0],
       flashBack:s.flip?'Ví dụ: Cycling to school cut my carbon footprint.':'tap để xem nghĩa tiếng Việt',
       flashStyle:'width:100%;max-width:620px;min-height:280px;border-radius:16px;padding:40px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;text-align:center;cursor:pointer;border:1px solid '+(s.flip?'#000000':'#f0eee9')+';background:'+(s.flip?ROSE:LEMON)+';color:#000000'+';box-shadow:rgb(225,225,225) 0px 0px 10px 2px',
+      flashRatingDisabled:!s.flip,
+      flashRatingEnabled:s.flip,
+      flashRatingHint:s.flip?'Chọn mức độ bạn nhớ từ này.':'Lật thẻ để xem đáp án và chấm.',
+      flashAgainStyle:'background:#f0eee9;color:#000000;border:none;border-radius:24px;white-space:nowrap;padding:12px 16px;font-size:14px;font-weight:700;cursor:'+(s.flip?'pointer':'not-allowed')+';opacity:'+(s.flip?'1':'.45'),
+      flashGotStyle:'background:#3860be;color:#ffffff;border:none;border-radius:24px;white-space:nowrap;padding:12px 16px;font-size:14px;font-weight:700;cursor:'+(s.flip?'pointer':'not-allowed')+';opacity:'+(s.flip?'1':'.45'),
       flipCard: ()=>this.setState(st=>({flip:!st.flip})),
-      flashAgain: ()=>this.setState(st=>({fi:st.fi+1,flip:false})),
-      flashGot: ()=>this.setState(st=>({fi:st.fi+1,flip:false})),
+      flashAgain: ()=>this.setState(st=>st.flip?{fi:st.fi+1,flip:false}:{}),
+      flashGot: ()=>this.setState(st=>st.flip?{fi:st.fi+1,flip:false}:{}),
       vocabSets:[
         {name:'Environment',meta:'24 từ · thuộc 18',bar:bar(75)},
         {name:'Education',meta:'30 từ · thuộc 12',bar:bar(40)},
