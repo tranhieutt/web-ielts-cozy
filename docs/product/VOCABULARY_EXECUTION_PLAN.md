@@ -48,7 +48,7 @@ Phát hành luồng `/vocabulary` cho phép người học xem deck theo topic, 
 
 > **Quy ước:** dòng ~~gạch ngang~~ là task đã xong và đã verify (test/build/CI xanh, hoặc migration đã apply + pgTAP pass). Dòng thường là việc còn lại. Task xong nhưng chỉ chạy trên fixture được ghi rõ giới hạn trong cột Definition of done — không coi là đã đạt yêu cầu bền vững của MVP.
 
-Tình trạng hiện tại: **29/52 task xong**. Toàn bộ lát cắt dọc (app, API, UI, a11y) đã chạy trên fixture. Việc còn lại: quyết định Product (`VOC-PLAN-02/03/05/07/08`), hạ tầng cần credential hoặc quyền admin (`VOC-DATA-07a/07b`, `VOC-INFRA-03/06/07`), adapter Supabase (`VOC-API-01/02s/03s/05s`), và QA (`VOC-QA-02/04/05/06/07/08`).
+Tình trạng hiện tại: **33/52 task xong**. Toàn bộ lát cắt dọc (app, API, UI, a11y) đã chạy trên fixture. Việc còn lại: quyết định Product (`VOC-PLAN-02/03/05/07/08`), hạ tầng cần credential hoặc quyền admin (`VOC-DATA-07a/07b`, `VOC-INFRA-03/06/07`), adapter Supabase (`VOC-API-01/02s/03s/05s`), và QA (`VOC-QA-02/04/05/06/07/08`).
 
 
 ### M0 — Quyết định release
@@ -89,8 +89,8 @@ Workflow `.github/workflows/vocabulary-content.yml` đã chạy validator/canoni
 | ~~VOC-DATA-04~~ | ~~Xây importer JSONL~~ | VOC-DATA-01 | **Implemented:** importer nhận catalog canonical `*.jsonl`, validate UTF-8/one-object-per-line/ID/topic/`def_vi`, upsert idempotent `vocabulary_cards` ở `draft`, báo file + line khi lỗi. |
 | ~~VOC-DATA-05~~ | ~~Normalize deck mapping~~ | VOC-DATA-04 | **Implemented:** `topic` là deck chính; `topics_all` tạo membership không nhân bản learner state; 23 display name Việt; deck/card dùng cùng catalog SHA content version. |
 | ~~VOC-DATA-06~~ | ~~Content quality gate CI~~ | VOC-DATA-04, VOC-INFRA-02 | **Implemented:** CI validate source và catalog canonical output: 5.275 card, 7.309 `def_vi` non-empty, không duplicate ID, không lộ `zh`/Youdao ở payload learner. |
-| VOC-DATA-07a | Seed dev/staging content | VOC-DATA-03, VOC-DATA-04 | **Không chờ Product.** `--apply` toàn bộ catalog vào môi trường dev/staging, toàn bộ deck giữ `publish_status = 'draft'`; deck Environment được đánh dấu là deck lát cắt dọc. Đủ để API/UI query thật; không có gì learner-facing được publish ở bước này. |
-| VOC-DATA-07b | Publish beta content | VOC-DATA-07a, VOC-PLAN-02 | Beta decks chuyển `published` theo list Product chốt; counts theo database khớp importer report; production chỉ nhận bước này. |
+| ~~VOC-DATA-07a~~ | ~~Seed dev/staging content~~ | VOC-DATA-03, VOC-DATA-04 | **Implemented:** `--apply` đã chạy trên project `iixvtoaifxuqjjdbwrzh`; database có 5.275 card / 23 deck / 8.271 membership, khớp importer report. |
+| ~~VOC-DATA-07b~~ | ~~Publish beta content~~ | VOC-DATA-07a, VOC-PLAN-02 | **Implemented:** publish 4 deck beta theo spec §13 Q4 — Environment, Education, Technology, General Academic. Publish theo **primary topic** (1.312 card `published`), nên card thuộc deck chưa audit không lộ qua membership phụ. Deck chưa publish trả rỗng, đã verify. |
 
 ### Vị trí thực thi hiện tại — 2026-08-20
 
@@ -105,9 +105,9 @@ Workflow `.github/workflows/vocabulary-content.yml` đã chạy validator/canoni
 |---|---|---|---|
 | VOC-API-01 | Identity resolver guest/user | VOC-DATA-02, VOC-INFRA-06 | Anonymous sign-in cấp UUID ngay lần vào đầu; request có learner identity an toàn; guest không thấy data guest khác; đăng nhập sau giữ nguyên UUID nên không cần bước migrate. |
 | ~~VOC-API-02~~ | ~~Deck catalog endpoint (fixture)~~ | VOC-INFRA-08 | **Implemented:** `GET /api/vocabulary/decks` trả summary (tên Việt, count publishable, due count, progress), không nhúng card. Đổi sang Supabase = thay adapter, không đổi service. |
-| VOC-API-02s | Deck catalog trên Supabase | VOC-DATA-07a | Trả deck name, count publishable, due count, learner progress; không trả cả corpus. |
+| ~~VOC-API-02s~~ | ~~Deck catalog trên Supabase~~ | VOC-DATA-07a | **Implemented:** đọc qua PostgREST bằng **publishable key**, RLS quyết định phạm vi nhìn thấy. Catalog trả 4 deck với count thật (168/379/205/622). |
 | ~~VOC-API-03~~ | ~~Review queue endpoint (fixture)~~ | VOC-INFRA-08, VOC-API-04 | **Implemented:** `GET /api/vocabulary/queue?deck=&mode=&limit=`; `due` xếp overdue -> due, `new` theo CEFR -> order -> id; limit cap server-side 1–50. |
-| VOC-API-03s | Queue trên Supabase | VOC-API-01, VOC-DATA-07a | `due` xếp overdue -> due -> learning; `new` theo CEFR/order; limit server-side. |
+| ~~VOC-API-03s~~ | ~~Queue trên Supabase~~ | VOC-API-01, VOC-DATA-07a | **Implemented:** queue lấy card thật theo deck, phân trang PostgREST, cache theo tiến trình. Payload không lộ `zh`/Youdao — verify trên dữ liệu thật. |
 | ~~VOC-API-04~~ | ~~SRS domain function~~ | VOC-API-01 | **Implemented early:** pure function đúng bảng 8.1 (stage 0–6, interval 10m/1d/3d/7d/14d/30d/60d) và 16 ô bảng 8.2; stage 6 đổi `mastered`, due time UTC. Không chạm DB. |
 | ~~VOC-API-04b~~ | ~~Session queue domain function~~ | VOC-PLAN-01 | **Implemented early:** pure module `apps/web/src/features/vocabulary/srs/session-queue.mjs` theo spec §8.3 — chèn lại thẻ `again` sau đúng 3 thẻ chưa chấm, bỏ chèn khi tail < 3, tối đa 2 lần/thẻ/phiên, không đọc `due_at`, không chạm DB. |
 | ~~VOC-API-05~~ | ~~Submit review endpoint (fixture)~~ | VOC-API-03, VOC-API-04 | **Implemented:** `POST /api/vocabulary/reviews`; replay `idempotencyKey` trả lại kết quả đầu tiên, không nhảy stage. **Chưa transactional và chưa bền** — cần adapter Supabase. |
