@@ -21,3 +21,4 @@
 | D-17 | Local, preview, production environments | Avoid direct production experimentation |
 | D-18 | CI + review gate production release | Safer small-team operations |
 | D-19 | Managed observability first | Minimize DevOps load |
+| D-20 | Vocabulary guest identity policy | Anonymous user retention 30d, passive header sign-in link, Google OAuth with manual linking, 50 anonymous sign-ins/hour/IP. See ADR-004. |

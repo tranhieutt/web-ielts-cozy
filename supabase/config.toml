@@ -175,9 +175,12 @@ refresh_token_reuse_interval = 10
 # Allow/disallow new user signups to your project.
 enable_signup = true
 # Allow/disallow anonymous sign-ins to your project.
-enable_anonymous_sign_ins = false
+# D-12/ADR-004: `learner_id` IS the anonymous UUID, so this is required, not optional.
+enable_anonymous_sign_ins = true
 # Allow/disallow testing manual linking of accounts
-enable_manual_linking = false
+# ADR-004: REQUIRED for Google OAuth. Without it, signing in creates a NEW user and
+# the anonymous learner's progress is orphaned. Do not set back to false.
+enable_manual_linking = true
 # Passwords shorter than this value will be rejected as weak. Minimum 6, recommended 8 or more.
 minimum_password_length = 6
 # Passwords that do not meet the following requirements will be rejected as weak. Supported values
@@ -200,7 +203,10 @@ email_sent = 2
 # Number of SMS messages that can be sent per hour. Requires auth.sms to be enabled.
 sms_sent = 30
 # Number of anonymous sign-ins that can be made per hour per IP address. Requires enable_anonymous_sign_ins = true.
-anonymous_users = 30
+# ADR-004: raised from the default 30. Learners cluster behind shared NAT (a prep-centre
+# class, a school, a cafe), where 30 new learners in an hour is ordinary and the 31st
+# would be locked out entirely. 50 is a beta starting point, not a derived number.
+anonymous_users = 50
 # Number of sessions that can be refreshed in a 5 minute interval per IP address.
 token_refresh = 150
 # Number of sign up and sign-in requests that can be made in a 5 minute interval per IP address (excludes anonymous users).
