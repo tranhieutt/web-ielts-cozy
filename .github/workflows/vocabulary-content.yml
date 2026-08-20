@@ -33,11 +33,15 @@ jobs:
           catalog_dir="$RUNNER_TEMP/ielts-cozy-vocabulary-catalog"
           npm run vocab:normalize-content -- --out-dir "$catalog_dir" --apply
           node scripts/vocabulary/validate-content.mjs --canonical-dir "$catalog_dir"
-      - name: Typecheck web app
-        run: npm run typecheck --workspace apps/web
-
+      # Build first: it generates `next-env.d.ts` and `.next/types/*`, which
+      # supply the CSS-module and route types `tsc` needs. Those files are
+      # machine-generated and differ between dev and build, so they stay out of
+      # git rather than being committed and drifting.
       - name: Build web app
         run: npm run build --workspace apps/web
+
+      - name: Typecheck web app
+        run: npm run typecheck --workspace apps/web
 
       - name: Run all tests
         run: npm test
