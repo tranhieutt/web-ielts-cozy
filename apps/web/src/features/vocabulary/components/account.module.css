@@ -1,0 +1,44 @@
+/* Account page (VOC-WEB-09). Plain prose: nothing here is a sales pitch. */
+
+.page {
+  max-width: var(--layout-content-max);
+  margin: 0 auto;
+  padding: var(--layout-page-inline-mobile);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.title {
+  margin: 0;
+  font-size: var(--font-size-display);
+  line-height: var(--font-line-height-display);
+  font-weight: var(--font-weight-medium);
+  letter-spacing: var(--font-letter-spacing-heading);
+}
+
+.body {
+  margin: 0;
+  max-width: 60ch;
+  color: var(--color-text-primary);
+}
+
+.footnote {
+  margin: 0;
+  max-width: 60ch;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-body-small);
+  line-height: var(--font-line-height-body-small);
+}
+
+.back {
+  align-self: flex-start;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  color: var(--color-text-link);
+}
+
+.back:hover {
+  color: var(--color-text-link-hover);
+}

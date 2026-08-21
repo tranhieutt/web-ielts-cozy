@@ -3,11 +3,14 @@
 // belong to the session runner, not here.
 import { NextResponse, type NextRequest } from 'next/server';
 
-import { attachLearnerCookie, resolveLearnerId } from '@/features/vocabulary/identity';
+import { attachLearnerSession, resolveLearner } from '@/features/vocabulary/identity';
+import { getRepository } from '@/features/vocabulary/repository.factory';
 import { getLearnerProgress } from '@/features/vocabulary/service';
 
 export async function GET(request: NextRequest) {
-  const { learnerId } = resolveLearnerId(request);
-  const response = NextResponse.json(getLearnerProgress(learnerId));
-  return attachLearnerCookie(response, learnerId);
+  const learner = await resolveLearner(request);
+  const repository = getRepository({ accessToken: learner.accessToken });
+  const progress = await getLearnerProgress(repository, learner.learnerId);
+  const response = NextResponse.json(progress);
+  return attachLearnerSession(response, learner);
 }

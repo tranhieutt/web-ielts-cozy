@@ -15,6 +15,9 @@
     "vocab:import-catalog": "node scripts/vocabulary/import-catalog-to-supabase.mjs",
     "vocab:import-decks": "node scripts/vocabulary/import-decks-to-supabase.mjs",
     "vocab:upload-audio": "node scripts/vocabulary/upload-audio-to-supabase.mjs",
+    "test:e2e": "playwright test",
+    "vocab:test-integration": "node scripts/vocabulary/run-integration-tests.mjs",
+    "vocab:publish-beta": "node scripts/vocabulary/publish-beta-decks.mjs",
     "vocab:validate-content": "node scripts/vocabulary/validate-content.mjs",
     "vocab:normalize-content": "node scripts/vocabulary/normalize-content.mjs",
     "vocab:test-normalize": "node --test test/vocabulary/normalize-content.test.mjs",
@@ -26,5 +29,8 @@
   "workspaces": [
     "apps/*",
     "packages/*"
-  ]
+  ],
+  "devDependencies": {
+    "@playwright/test": "^1.62.1"
+  }
 }

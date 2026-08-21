@@ -1,0 +1,113 @@
+/* Vocabulary footer (VOC-WEB-09/10). Quiet by design: ADR-004 says account
+   creation is offered, never pushed, so nothing here competes with the primary
+   action above it. */
+
+.footer {
+  max-width: var(--layout-content-max);
+  margin: var(--space-8) auto 0;
+  padding: var(--space-6) var(--layout-page-inline-mobile) var(--space-8);
+  border-top: 1px solid var(--color-border-subtle);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  font-size: var(--font-size-body-small);
+  line-height: var(--font-line-height-body-small);
+}
+
+.accountLink {
+  color: var(--color-text-link);
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+}
+
+.accountLink:hover {
+  color: var(--color-text-link-hover);
+}
+
+/* Destructive, so it is styled as a plain control rather than a button that
+   invites a casual press. */
+.dangerButton {
+  min-height: 44px;
+  padding: var(--space-2) var(--space-4);
+  background: none;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-pill);
+  color: var(--color-text-secondary);
+  font: inherit;
+  cursor: pointer;
+}
+
+.dangerButton:hover {
+  border-color: var(--color-border-strong);
+  color: var(--color-text-primary);
+}
+
+.dangerButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.confirm {
+  width: 100%;
+  padding: var(--space-4);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-md, 12px);
+  background: var(--color-background-subtle);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.confirmText {
+  margin: 0;
+  color: var(--color-text-primary);
+}
+
+.confirmActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.confirmDelete {
+  min-height: 44px;
+  padding: var(--space-2) var(--space-5);
+  border: none;
+  border-radius: var(--radius-pill);
+  background: var(--color-feedback-error-surface);
+  color: var(--color-text-primary);
+  font: inherit;
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+}
+
+.cancel {
+  min-height: 44px;
+  padding: var(--space-2) var(--space-5);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-pill);
+  background: var(--color-background-surface);
+  color: var(--color-text-primary);
+  font: inherit;
+  cursor: pointer;
+}
+
+.status {
+  margin: 0;
+  color: var(--color-text-secondary);
+}
+
+.error {
+  color: var(--color-feedback-text);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .dangerButton,
+  .confirmDelete,
+  .cancel {
+    transition: border-color 120ms ease, color 120ms ease;
+  }
+}

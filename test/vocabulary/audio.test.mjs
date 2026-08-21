@@ -79,12 +79,15 @@ test('queue payload omits audio entirely while the gate is closed', async () => 
   delete process.env.VOCABULARY_AUDIO_ENABLED;
   delete process.env.VOCABULARY_AUDIO_BASE_URL;
   const { buildReviewQueue } = await import('../../apps/web/src/features/vocabulary/service.ts');
+  const { createFixtureRepository } = await import(
+    '../../apps/web/src/features/vocabulary/repository.fixture.ts'
+  );
 
-  const cards = buildReviewQueue('33333333-3333-4333-8333-333333333333', {
-    deck: 'environment',
-    mode: 'new',
-    limit: 5,
-  });
+  const cards = await buildReviewQueue(
+    createFixtureRepository(),
+    '33333333-3333-4333-8333-333333333333',
+    { deck: 'environment', mode: 'new', limit: 5 },
+  );
 
   assert.ok(cards.length > 0);
   assert.ok(

@@ -7,8 +7,8 @@
  */
 
 import { resolveAudioSources } from './audio.ts';
-import * as repository from './repository.fixture.ts';
-import { transitionVocabularySrs } from './srs/transition.mjs';
+import { STAGE_INTERVAL_MINUTES, transitionVocabularySrs } from './srs/transition.mjs';
+import type { VocabularyRepository } from './repository';
 import type {
   DeckSummary,
   LearnerProgress,
@@ -34,19 +34,41 @@ function cefrRank(card: VocabularyCard): number {
   return index === -1 ? CEFR_ORDER.length : index;
 }
 
-export function getDeckCatalog(learnerId: string): DeckSummary[] {
+/**
+ * Deck catalog for the dashboard (spec §6.1).
+ *
+ * Cost is proportional to how much the LEARNER has studied, not to how big the
+ * catalog is. Totals come from a database-side count, and only the learner's
+ * own rated cards are mapped back to decks. The earlier version fetched every
+ * card of every published deck purely to call `.length` on the array, which put
+ * the whole published corpus on the wire for the first screen a learner sees.
+ */
+export async function getDeckCatalog(
+  repository: VocabularyRepository,
+  learnerId: string,
+): Promise<DeckSummary[]> {
   const now = Date.now();
-  const states = new Map(repository.getLearnerStates(learnerId).map((s) => [s.cardId, s]));
+  const states = await repository.getLearnerStates(learnerId);
 
-  return repository.listDecks().map((deck) => {
-    const cards = repository.listPublishableCards(deck.slug);
+  const memberships = await repository.listDeckMemberships(states.map((s) => s.cardId));
+  const statesByCard = new Map(states.map((s) => [s.cardId, s]));
+
+  // deck slug -> the learner's states for cards in that deck.
+  const perDeck = new Map<string, LearnerCardState[]>();
+  for (const membership of memberships) {
+    const state = statesByCard.get(membership.card_id);
+    if (!state) continue;
+    const bucket = perDeck.get(membership.deck_slug);
+    if (bucket) bucket.push(state);
+    else perDeck.set(membership.deck_slug, [state]);
+  }
+
+  return (await repository.listDeckSummaries()).map((deck) => {
     let dueCount = 0;
     let learningCount = 0;
     let masteredCount = 0;
 
-    for (const card of cards) {
-      const state = states.get(card.id);
-      if (!state) continue;
+    for (const state of perDeck.get(deck.slug) ?? []) {
       if (state.state === 'mastered') masteredCount += 1;
       else if (state.state !== 'new') learningCount += 1;
       if (state.dueAt !== null && Date.parse(state.dueAt) <= now) dueCount += 1;
@@ -55,10 +77,10 @@ export function getDeckCatalog(learnerId: string): DeckSummary[] {
     return {
       slug: deck.slug,
       displayNameVi: deck.display_name_vi,
-      publishableCardCount: cards.length,
+      publishableCardCount: deck.publishable_card_count,
       dueCount,
       progress: {
-        newCount: cards.length - (learningCount + masteredCount),
+        newCount: deck.publishable_card_count - (learningCount + masteredCount),
         learningCount,
         masteredCount,
       },
@@ -71,13 +93,16 @@ export function getDeckCatalog(learnerId: string): DeckSummary[] {
  * session runs, ordering belongs to `session-queue.mjs` and never comes back
  * to this function.
  */
-export function buildReviewQueue(
+export async function buildReviewQueue(
+  repository: VocabularyRepository,
   learnerId: string,
   { deck, mode, limit }: { deck: string; mode: QueueMode; limit: number },
-): VocabularyCardPayload[] {
+): Promise<VocabularyCardPayload[]> {
   const now = Date.now();
-  const cards = repository.listPublishableCards(deck);
-  const states = new Map(repository.getLearnerStates(learnerId).map((s) => [s.cardId, s]));
+  const cards = await repository.listPublishableCards(deck);
+  const states = new Map(
+    (await repository.getLearnerStates(learnerId)).map((s) => [s.cardId, s]),
+  );
 
   if (mode === 'new') {
     // Cards never seen, easiest CEFR first, `order` then `id` as stable tiebreak.
@@ -103,25 +128,22 @@ export function buildReviewQueue(
     .map((entry) => toPayload(entry.card));
 }
 
-function initialState(learnerId: string, cardId: string): LearnerCardState {
-  return {
-    learnerId,
-    cardId,
-    state: 'new',
-    stage: null,
-    dueAt: null,
-    firstSeenAt: null,
-    lastReviewedAt: null,
-    reviewCount: 0,
-  };
-}
-
 /**
- * Submit one rating. State update and review event are one unit of work; a
- * repeated `idempotencyKey` replays the FIRST result instead of advancing a
- * second stage (spec §8.4).
+ * Submit one rating.
+ *
+ * The schedule is computed HERE from the learner's current state, then handed
+ * to the adapter to persist as one unit. A repeated `idempotencyKey` replays
+ * the FIRST persisted result instead of advancing a second stage (spec §8.4) —
+ * and that decision is made by the adapter's uniqueness constraint, not by a
+ * read-then-write check in this function, so a double-tap retry cannot race.
+ *
+ * The state we read is also sent as `expected`, making the write a
+ * compare-and-swap. If a concurrent session moved the card first, the adapter
+ * raises `StaleLearnerStateError` rather than overwriting the newer state with
+ * a schedule computed from a stale one.
  */
-export function submitReview(
+export async function submitReview(
+  repository: VocabularyRepository,
   learnerId: string,
   {
     cardId,
@@ -129,45 +151,41 @@ export function submitReview(
     idempotencyKey,
     reviewedAt = new Date(),
   }: { cardId: string; rating: Rating; idempotencyKey: string; reviewedAt?: Date },
-): ReviewResult {
-  if (!repository.findCard(cardId)) {
-    throw new Error(`unknown card: ${cardId}`);
-  }
+): Promise<ReviewResult> {
+  // No existence pre-check here on purpose. The adapter checks the card inside
+  // the same transaction that writes, so a check up here would be an extra
+  // round trip AND a TOCTOU gap: the card could be unpublished between the two.
+  const states = await repository.getLearnerStates(learnerId);
+  const current: Pick<LearnerCardState, 'state' | 'stage'> = states.find(
+    (entry) => entry.cardId === cardId,
+  ) ?? { state: 'new', stage: null };
 
-  const replay = repository.findReplay(learnerId, idempotencyKey);
-  if (replay !== undefined) {
-    return { ...(JSON.parse(replay) as ReviewResult), replayed: true };
-  }
-
-  const current = repository.getLearnerState(learnerId, cardId) ?? initialState(learnerId, cardId);
   const next = transitionVocabularySrs(
     { state: current.state, stage: current.stage },
     rating,
     reviewedAt,
   );
 
-  const reviewedAtIso = reviewedAt.toISOString();
-  repository.putLearnerState({
-    ...current,
-    state: next.state,
-    stage: next.stage,
-    dueAt: next.dueAt,
-    firstSeenAt: current.firstSeenAt ?? reviewedAtIso,
-    lastReviewedAt: reviewedAtIso,
-    reviewCount: current.reviewCount + 1,
+  const persisted = await repository.commitReview({
+    learnerId,
+    cardId,
+    rating,
+    idempotencyKey,
+    reviewedAt,
+    expected: { state: current.state, stage: current.stage },
+    next: { state: next.state, stage: next.stage, dueAt: next.dueAt },
   });
 
-  const result: ReviewResult = {
+  return {
     cardId,
-    state: next.state,
-    stage: next.stage,
-    dueAt: next.dueAt,
-    intervalMinutes: next.intervalMinutes,
-    replayed: false,
+    state: persisted.state,
+    stage: persisted.stage,
+    dueAt: persisted.dueAt,
+    // Derived from the PERSISTED stage, so a replay reports the interval that
+    // was actually scheduled rather than the one this call recomputed.
+    intervalMinutes: STAGE_INTERVAL_MINUTES[persisted.stage as keyof typeof STAGE_INTERVAL_MINUTES],
+    replayed: persisted.replayed,
   };
-  repository.recordReview(learnerId, idempotencyKey, JSON.stringify({ ...result, replayed: false }));
-
-  return result;
 }
 
 /**
@@ -176,9 +194,12 @@ export function submitReview(
  * `reviewedCount` counts cards the learner has actually rated — never cards
  * merely seen — so it cannot be mistaken for "đã thuộc" (spec §6.1).
  */
-export function getLearnerProgress(learnerId: string): LearnerProgress {
+export async function getLearnerProgress(
+  repository: VocabularyRepository,
+  learnerId: string,
+): Promise<LearnerProgress> {
   const now = Date.now();
-  const states = repository.getLearnerStates(learnerId);
+  const states = await repository.getLearnerStates(learnerId);
 
   let learningCount = 0;
   let masteredCount = 0;
@@ -200,6 +221,6 @@ export function getLearnerProgress(learnerId: string): LearnerProgress {
     masteredCount,
     dueCount,
     scheduledCount,
-    decks: getDeckCatalog(learnerId),
+    decks: await getDeckCatalog(repository, learnerId),
   };
 }
