@@ -6,6 +6,8 @@ Mọi thay đổi đáng chú ý của IELTS Cozy được ghi trong file này.
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-08-20
+
 ### Added
 
 - Supabase Anonymous Auth as the learner identity (D-12, ADR-004): the first request mints a real `auth.users` UUID that IS the `learner_id`, carried in httpOnly cookies, so Row Level Security enforces isolation instead of application code.
@@ -13,6 +15,7 @@ Mọi thay đổi đáng chú ý của IELTS Cozy được ghi trong file này.
 - Durable, transactional review writes: the `submit_vocabulary_review` function records the review event and updates learner state in a single transaction, with idempotency enforced by a unique `(learner_id, idempotency_key)` constraint rather than application logic. Progress now survives a restart.
 - A passive sign-in link and an explicit "progress is stored in this browser" note on the vocabulary catalog, delivering the affordances ADR-004 committed to so an anonymous learner can actually keep their progress.
 - Integration coverage for the review write against the real project: transactionality, replay, concurrent requests collapsing to one event, cross-learner isolation, rejection of unpublished cards, and refusal to write without a session.
+- Shared `SiteNav` for real Vocabulary pages, preserving the prototype's eleven destinations, labels, order, active state, mobile horizontal scroll, and keyboard skip link.
 
 - `vocabulary_deck_summary` view returning the deck catalog and its publishable card counts in one request, declared `security_invoker` so Row Level Security still governs what each caller sees.
 - Real Vocabulary catalog in Supabase: 5,275 cards, 23 decks and 8,271 memberships imported, with the four beta decks (Environment, Education, Technology, General Academic) published as 1,312 cards.
@@ -44,6 +47,8 @@ Mọi thay đổi đáng chú ý của IELTS Cozy được ghi trong file này.
 
 - The Next application now serves the whole domain: `/vocabulary` is the real app, and the nine screens without a real page yet are rewritten to the design-canvas prototype, which is synced into the app at build time so the repo-root export stays the only source of truth.
 - The static runtime check now asserts that every route the prototype can navigate to is served by something — a rewrite or a real page — replacing the obsolete single-page rewrite assertion.
+- Prototype navigation now hands app-owned routes, including `/vocabulary`, back to the browser before its SPA handler intercepts the click; a Vocabulary click reaches the real Next page instead of the mockup screen.
+- Route coverage now verifies both directions: every prototype route has a rewrite or page, and every route claimed by the app has a real page plus an injected prototype handoff.
 
 - The deck catalog no longer downloads every card to count them. Measured against the real project, the database answers a count in ~2ms while a round trip costs ~600ms, so the catalog was rebuilt around one request instead of one per deck; learner progress now fetches only the cards a learner has actually rated.
 - The dashboard's primary call to action now targets a deck chosen from the data (first deck with due cards, else the largest) instead of a hard-coded slug, which only surfaced once more than one deck existed.
@@ -67,13 +72,14 @@ Mọi thay đổi đáng chú ý của IELTS Cozy được ghi trong file này.
 - The learner's session was not written back when starting Google sign-in, so a refresh-token rotation followed by cancelling on Google's screen left the browser holding dead credentials and stranded the learner's progress.
 - `/api/vocabulary/progress` fetched learner state twice per request — once directly and once inside the deck catalog — adding a full Supabase round trip to every catalog load.
 - A card whose `topics_all` already contains its primary topic was counted twice in per-deck progress, inflating a learner's totals (VOC-03).
+- The route gate previously skipped app-owned routes, allowing a missing Vocabulary page to build and deploy as a silent 404; it now fails the build.
 
 ### Security
 
 - The web app's environment carries the publishable key only; the service-role key stays with the local import scripts and never reaches the app runtime.
 - Cards are published by primary topic, so a card whose own deck has not passed translation audit cannot appear through a secondary membership in a published deck.
 - Audio delivery cannot be switched on by a data edit: the release gate is deploy-time configuration, so mis-pronounced heteronyms cannot reach learners before pronunciation QA (`VOC-PLAN-08`) passes.
-- Vertical-slice learner identity is an unsigned first-party cookie and learner state lives in process memory: it proves nothing about the caller, does not survive a restart, and must not be pointed at real learners. Supabase Anonymous Auth (D-12) and the database adapter replace both.
+- Vocabulary production paths use Supabase Anonymous Auth sessions in httpOnly cookies and transactional learner-state persistence; the unsigned fixture identity remains isolated to local/offline development only.
 - Slice API payloads are asserted free of Chinese source fields and Youdao audio URLs on the real fixture content (VOC-08).
 - Quy định guest-first identity, age gate/consent cho người dùng dưới 18 tuổi, RLS, signed audio URLs, và không gửi raw learner content vào analytics.
 
